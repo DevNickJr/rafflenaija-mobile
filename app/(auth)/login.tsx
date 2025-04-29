@@ -1,109 +1,93 @@
-import { StyleSheet, Image, Platform } from 'react-native';
-
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import React, { useState } from 'react';
+import { TextInput, TouchableOpacity, Pressable } from 'react-native';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 
-export default function TabTwoScreen() {
+export default function LoginScreen() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
+    <ThemedView className="flex flex-1 justify-center px-6 py-10 bg-white">
+      {/* Header */}
+      <ThemedView className="flex-row justify-between items-center mb-6">
+        <ThemedText type="title" className="text-4xl font-bold">
+          Login
+        </ThemedText>
+        <Pressable>
+          <AntDesign name="close" size={24} color="black" />
+        </Pressable>
       </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
+
+      {/* Subtext */}
+      <ThemedText className="text-xs max-w-[280px] mb-8">
+        Please enter your credentials to access your account and stand a chance to win items.
+      </ThemedText>
+
+      {/* Form */}
+      <ThemedView className="flex gap-6">
+        {/* Phone Number */}
+        <ThemedView className="flex flex-col gap-2">
+          <ThemedText className="text-sm">Phone Number</ThemedText>
+          <TextInput
+            className="p-4 w-full text-sm rounded-full border border-gray-300"
+            placeholder="09012345678"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            placeholderTextColor="#999"
+          />
+        </ThemedView>
+
+        {/* Password */}
+        <ThemedView className="flex flex-col gap-2">
+          <ThemedText className="text-sm">Password</ThemedText>
+          <ThemedView className="relative w-full">
+            <TextInput
+              className="p-4 pr-12 w-full text-sm rounded-full border border-gray-300"
+              placeholder="Enter your password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              placeholderTextColor="#999"
+            />
+            <Pressable
+              onPress={() => setShowPassword(!showPassword)}
+              className="absolute top-4 right-4">
+              {showPassword ? (
+                <Ionicons name="eye-off" size={24} color="black" />
+              ) : (
+                <Ionicons name="eye" size={24} color="black" />
+              )}
+            </Pressable>
+          </ThemedView>
+        </ThemedView>
+
+        {/* Remember me and Forgot Password */}
+        <ThemedView className="flex-row justify-between items-center mt-2">
+          <ThemedView className="flex-row items-center space-x-2">
+            <ThemedView className="w-4 h-4 rounded border border-gray-400" />
+            <ThemedText className="text-sm">Remember me</ThemedText>
+          </ThemedView>
+          <TouchableOpacity>
+            <ThemedText className="text-sm font-bold text-primary">Forgot Password?</ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+
+        {/* Login Button */}
+        <TouchableOpacity className="p-4 mt-6 rounded-full bg-primary">
+          <ThemedText className="font-bold text-center text-white">Login</ThemedText>
+        </TouchableOpacity>
+
+        {/* Signup Link */}
+        <TouchableOpacity className="mt-6">
+          <ThemedText className="text-sm text-center">
+            Not Registered yet?.
+            <ThemedText className="font-bold text-primary">Create an Account</ThemedText>
           </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+        </TouchableOpacity>
+      </ThemedView>
+    </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});

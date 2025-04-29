@@ -12,6 +12,7 @@ export function ThemedText({
   style,
   lightColor,
   darkColor,
+  className,
   type = 'default',
   ...rest
 }: ThemedTextProps) {
@@ -19,8 +20,9 @@ export function ThemedText({
 
   return (
     <Text
+      className={className}
       style={[
-        { color },
+        // { color },
         type === 'default' ? styles.default : undefined,
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
@@ -57,4 +59,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0a7ea4',
   },
+  free: {},
 });
