@@ -8,10 +8,11 @@ const { width } = Dimensions.get('window');
 
 type Props={
   underlineTxt:string;
-  restTxt:string
+  restTxt:string,
+  size?:number
 }
 
-const WaveUI = ({underlineTxt, restTxt}:Props) => {
+const WaveUI = ({underlineTxt, restTxt, size=38}:Props) => {
   
   return (
     <View style={styles.container}>
@@ -30,7 +31,7 @@ const WaveUI = ({underlineTxt, restTxt}:Props) => {
       </View>
 
       <View style={styles.textcontainer}>
-         <Text style={styles.text}>
+         <Text style={{fontSize:size,fontWeight:"600",}}>
           <Text style={{textDecorationLine:"underline",paddingBottom:30}}>{underlineTxt}</Text> {restTxt}
          </Text>
       </View>

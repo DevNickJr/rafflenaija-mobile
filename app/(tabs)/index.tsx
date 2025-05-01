@@ -1,130 +1,268 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import {
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  FlatList,
+  ListRenderItem,
+  NativeScrollEvent,
+  NativeSyntheticEvent
+} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import UserIdCard from '@/components/UserIdCard';
+import { Colors } from '@/constants/Colors';
 
-const index = () => {
+const { width } = Dimensions.get('screen');
+const NUM_CARDS = 5;
+const CARD_GAP = 8; // margin: 4 on each side = 8 total
+const SIDE_PADDING = 40; // 20 left + 20 right from styles.container
 
-  const categories = ["Powerbank", "Headphones", "Speakers", "Smartwatches", "Tablets", "Gaming Consoles", "Phone Cases", "Portable Mini Fan", "Bluetooth Earpiece", "Wireless Mouse", "Webcam Cover", "Digital Alarm Clock", "Magnetic Phone Mount", "Car Phone Holder"]
+const totalGapWidth = CARD_GAP * (NUM_CARDS - 1);
+const availableWidth = width - SIDE_PADDING - totalGapWidth;
+const cardSize = availableWidth / NUM_CARDS;
 
-  const [codes, setCodes] = useState([
-    "A1","A2","A3","A4","A5","A6","A7","A8","A9",
-    "B1","B2","B3","B4","B5","B6","B7","B8","B9",
-    "C1","C2","C3","C4","C5","C6","C7","C8","C9",
-    "D1","D2","D3","D4","D5","D6","D7","D8","D9",
-    "E1","E2","E3","E4","E5","E6","E7","E8","E9",
-    "F1","F2","F3","F4","F5","F6","F7","F8","F9",
-    "G1","G2","G3","G4","G5","G6","G7","G8","G9",
-    "H1","H2","H3","H4","H5","H6","H7","H8","H9",
-    "I1","I2","I3","I4","I5","I6","I7","I8","I9",
-    "J1","J2","J3","J4","J5","J6","J7","J8","J9",
-    "K1","K2","K3","K4","K5","K6","K7","K8","K9",
-    "L1","L2","L3","L4","L5","L6","L7","L8","L9",
-    "M1","M2","M3","M4","M5","M6","M7","M8","M9",
-    "N1","N2","N3","N4","N5","N6","N7","N8","N9",
-    "O1","O2","O3","O4","O5","O6","O7","O8","O9",
-    "P1","P2","P3","P4","P5","P6","P7","P8","P9",
-    "Q1","Q2","Q3","Q4","Q5","Q6","Q7","Q8","Q9",
-    "R1","R2","R3","R4","R5","R6","R7","R8","R9",
-    "S1","S2","S3","S4","S5","S6","S7","S8","S9",
-    "T1","T2","T3","T4","T5","T6","T7","T8","T9",
-    "U1","U2","U3","U4","U5","U6","U7","U8","U9",
-    "V1","V2","V3","V4","V5","V6","V7","V8","V9",
-    "W1","W2","W3","W4","W5","W6","W7","W8","W9",
-    "X1","X2","X3","X4","X5","X6","X7","X8","X9",
-    "Y1","Y2","Y3","Y4","Y5","Y6","Y7","Y8","Y9",
-    "Z1","Z2","Z3","Z4","Z5","Z6","Z7","Z8","Z9",
-  ])
 
-  const [selectedCategory, setSelectedCategory]=useState(0)
+type SlideImage = {
+  id: number;
+  image: any;
+};
+
+const slideImages: SlideImage[] = [
+  { id: 1, image: require('@/assets/images/homelogo.png') },
+  { id: 2, image: require('@/assets/images/homelogo.png') },
+  { id: 3, image: require('@/assets/images/homelogo.png') }
+];
+
+const categories = [
+  'Powerbank', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Gaming Consoles',
+  'Phone Cases', 'Portable Mini Fan', 'Bluetooth Earpiece', 'Wireless Mouse', 'Webcam Cover',
+  'Digital Alarm Clock', 'Magnetic Phone Mount', 'Car Phone Holder'
+];
+
+const codes = Array.from({ length: 26 }, (_, i) =>
+  Array.from({ length: 9 }, (_, j) => `${String.fromCharCode(65 + i)}${j + 1}`)
+).flat();
+
+const HomeScreen = () => {
+  const flatListRef = useRef<FlatList<string>>(null);
+  const bannerRef = useRef<FlatList<SlideImage>>(null);
+
+  const [activeDot, setActiveDot] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState(0);
+
+  // Auto-slide logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveDot((prev) => {
+        const next = (prev + 1) % slideImages.length;
+        bannerRef.current?.scrollToIndex({ index: next, animated: true });
+        return next;
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getItemLayout = (_: any, index: number) => ({
+    length: width - 40,
+    offset: (width - 40) * index,
+    index
+  });
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / (width - 40));
+    setActiveDot(index);
+  };
+
+  const renderDotIndicator = () => (
+    <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
+      {slideImages.map((_, index) => (
+        <View
+          key={index}
+          style={{
+            height: 10,
+            width: 10,
+            borderRadius: 5,
+            backgroundColor: activeDot === index ? '#061023' : 'white',
+            marginHorizontal: 5
+          }}
+        />
+      ))}
+    </View>
+  );
+
+  const renderBannerItem: ListRenderItem<SlideImage> = ({ item }) => (
+    <Image source={item.image} style={{ width: width - 40, height: 230, borderRadius: 10 }} resizeMode="stretch" />
+  );
+
+  // const renderCodeItem: ListRenderItem<string> = ({ item }) => {
+  //   const isRaffled = item.includes('1');
+  //   return (
+  //     <TouchableOpacity
+  //       style={[
+  //         {
+  //           width: cardSize,
+  //           height: cardSize,
+  //           margin: 4
+  //         },
+  //         styles.rafCard,
+  //         isRaffled && styles.raffledCard
+  //       ]}
+  //     >
+  //       <Text style={isRaffled ? styles.raffledText : styles.normalText}>
+  //         {isRaffled ? 'Raffled' : item}
+  //       </Text>
+  //     </TouchableOpacity>
+  //   );
+  // };
+  const CodeCard = React.memo(({ item }: { item: string }) => {
+    const isRaffled = item.includes('1');
+    return (
+      <TouchableOpacity
+        style={[
+          {
+            width: cardSize,
+            height: cardSize,
+            margin: 4
+          },
+          styles.rafCard,
+          isRaffled && styles.raffledCard
+        ]}
+      >
+        <Text style={isRaffled ? styles.raffledText : styles.normalText}>
+          {isRaffled ? 'Raffled' : item}
+        </Text>
+      </TouchableOpacity>
+    );
+  });
+  const renderCodeItem: ListRenderItem<string> = ({ item }) => <CodeCard item={item} />;
+  
+
+  const renderHeader = () => (
+    <View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Image source={require('@/assets/images/homelogo.png')} style={{ width: 40, height: 40 }} />
+        <UserIdCard />
+      </View>
+
+      {/* Categories */}
+      <FlatList
+        horizontal
+        data={categories}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            style={[styles.catItem, selectedCategory === index && { backgroundColor: '#D23433' }]}
+            onPress={() => setSelectedCategory(index)}
+          >
+            <Text style={{ color: selectedCategory === index ? '#fff' : '#000' }}>{item}</Text>
+          </TouchableOpacity>
+        )}
+        keyExtractor={(_, i) => i.toString()}
+        contentContainerStyle={styles.categoryStyle}
+        showsHorizontalScrollIndicator={false}
+      />
+
+      {/* Banner */}
+      <FlatList
+        ref={bannerRef}
+        data={slideImages}
+        renderItem={renderBannerItem}
+        horizontal
+        keyExtractor={(item) => item.id.toString()}
+        pagingEnabled
+        getItemLayout={getItemLayout}
+        onScroll={handleScroll}
+        showsHorizontalScrollIndicator={false}
+      />
+
+      {renderDotIndicator()}
+
+      {/* Random Select Row */}
+      <View style={styles.randomRow}>
+        <Text style={{ fontSize: 16, fontWeight: '600' }}>{categories[selectedCategory]}</Text>
+        <TouchableOpacity style={styles.randomBtn}>
+          <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={{flex:1}}>
+    <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <ScrollView>
-          <View style={{height:40}}>
-            <ScrollView
-              horizontal
-              contentContainerStyle={{
-                alignItems: 'flex-start', // Important for height to be based on children
-              }}
-              showsHorizontalScrollIndicator={false}
-            >
-              <View style={styles.categoryStyle}>
-                {categories.map((item, idx) => (
-                  <TouchableOpacity 
-                  key={idx} style={[styles.catItem,{backgroundColor: selectedCategory===idx ?"#D23433":undefined}]}
-                  onPress={()=>setSelectedCategory(idx)}
-                  >
-                    <Text style={{ color:selectedCategory===idx ? "#fff" :"000"}}>{item}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-          
-          {/* Ads Card */}
-          <View style={{height:200, backgroundColor:"gray"}}></View>
-
-          <View style={{flexDirection:"row", justifyContent:"space-between",paddingVertical:8, marginTop:8, alignItems:"center"}}>
-            <Text style={{fontSize:16, fontWeight:"600"}}>{categories[selectedCategory]}</Text>
-
-            <TouchableOpacity style={styles.randomBtn}>
-              <Text>Ranndom Select</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Raffles */}
-          <View style={styles.raffleContainer}>
-            {
-              codes.map((item, idx)=>(
-                <TouchableOpacity key={idx} style={styles.rafCard}>
-                  <Text style={{fontSize:18, color:"#fff"}}>{item}</Text>
-                </TouchableOpacity>
-              ))
-            }
-          </View>
-        </ScrollView>
+        <FlatList
+          data={codes}
+          ref={flatListRef}
+          keyExtractor={(item) => item}
+          numColumns={5}
+          renderItem={renderCodeItem}
+          ListHeaderComponent={renderHeader}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default index
+export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container:{
-    flex:1,
-    // backgroundColor:"#c0c0c0",
-    paddingTop:20,
-    paddingHorizontal:20
+  container: {
+    flex: 1,
+    paddingTop: 20,
+    paddingHorizontal: 16
   },
-  categoryStyle:{
-    flexDirection:"row",
-    gap:4
+  categoryStyle: {
+    paddingVertical: 8,
+    gap: 6
   },
-  catItem:{
-    backgroundColor:"#D23433",
-    padding:6,
-    borderRadius:2,
-    borderWidth:0,
-    elevation:0
+  catItem: {
+    backgroundColor: '#f0f0f0',
+    padding: 8,
+    borderRadius: 4,
+    marginRight: 8
   },
-  randomBtn:{
-    borderWidth:1,
-    padding:6,
-    borderRadius:14
+  randomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 16
   },
-  raffleContainer:{
-    marginTop:20, 
-    flexDirection:"row", 
-    flexWrap:"wrap", 
-    gap:4,
-    justifyContent:"center"
+  randomBtn: {
+    borderWidth: 1,
+    borderColor: Colors.light.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14
   },
-  rafCard:{
-    width:67,
-    height:67,
-    backgroundColor:"#449444",
-    alignItems:"center",
-    justifyContent:"center"
+  raffleContainer: {
+    marginTop: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    justifyContent: 'center'
+  },
+  rafCard: {
+    backgroundColor: '#449444',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  normalText: {
+    fontSize: 18,
+    color: '#fff'
+  },
+  raffledCard: {
+    backgroundColor: '#F1C0C0'
+  },
+  raffledText: {
+    transform: [{ rotate: '-60deg' }],
+    fontSize: 16,
+    color: '#952524',
+    textAlign: 'center'
   }
-})
+});

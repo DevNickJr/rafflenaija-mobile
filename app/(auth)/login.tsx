@@ -23,10 +23,7 @@ export default function Login() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content"/>
-      {/* <View style={styles.header}>
-        <Text style={styles.headerText}>Sign in</Text>
-        <View style={styles.underline} />
-      </View> */}
+     
       <WaveUI underlineTxt='Sign' restTxt='in'/>
 
       <View style={styles.form}>
@@ -51,7 +48,7 @@ export default function Login() {
 
         <View style={styles.options}>
           <Checkbox label="Remember Me" />
-          <AuthLink label="Forgot Password?" onPress={() => console.log('Forgot password pressed')} />
+          <AuthLink label="Forgot Password?" onPress={() => router.navigate("/(auth)/phone")} />
         </View>
 
         <AuthButton title="Login" onPress={handleLogin} />

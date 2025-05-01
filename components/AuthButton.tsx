@@ -4,27 +4,70 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 interface ButtonProps {
   title: string;
   onPress: () => void;
+  disabled?: boolean;
+  variant?: 'outline' | 'solid';
 }
 
-const AuthButton: React.FC<ButtonProps> = ({ title, onPress }) => {
+const AuthButton: React.FC<ButtonProps> = ({
+  title,
+  onPress,
+  disabled = false,
+  variant = 'solid',
+}) => {
+  const isOutline = variant === 'outline';
+
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.buttonText}>{title}</Text>
+    <TouchableOpacity
+      style={[
+        styles.button,
+        isOutline ? styles.outline : styles.solid,
+        disabled && styles.disabled,
+      ]}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text
+        style={[
+          styles.buttonText,
+          isOutline ? styles.outlineText : {},
+          disabled && styles.disabledText,
+        ]}
+      >
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#fa6c6c',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
+    marginTop: 12,
+  },
+  solid: {
+    backgroundColor: '#fa6c6c',
+  },
+  outline: {
+    borderWidth: 1,
+    borderColor: '#fa6c6c',
+    backgroundColor: 'transparent',
+  },
+  disabled: {
+    backgroundColor: '#ccc',
+    borderColor: '#ccc',
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#fff',
+  },
+  outlineText: {
+    color: '#fa6c6c',
+  },
+  disabledText: {
+    color: '#888',
   },
 });
 
