@@ -1,93 +1,118 @@
+import AuthButton from '@/components/AuthButton';
+import InputField from '@/components/AuthInput';
+import AuthLink from '@/components/AuthLink';
+import Checkbox from '@/components/Checkbox';
+import WaveUI from '@/components/WaveUi';
+import { useSession } from '@/providers/SessionProvider';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { TextInput, TouchableOpacity, Pressable } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { SafeAreaView, StatusBar, Text, View, StyleSheet } from 'react-native';
 
-export default function LoginScreen() {
-  const [showPassword, setShowPassword] = useState(false);
+
+export default function Login() {
+    const { signIn } = useSession();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
 
+  const handleLogin = () => {
+    // Handle login logic
+    signIn()
+    console.log('Logging in with:', phoneNumber, password);
+  };
+
   return (
-    <ThemedView className="flex flex-1 justify-center px-6 py-10 bg-white">
-      {/* Header */}
-      <ThemedView className="flex-row justify-between items-center mb-6">
-        <ThemedText type="title" className="text-4xl font-bold">
-          Login
-        </ThemedText>
-        <Pressable>
-          <AntDesign name="close" size={24} color="black" />
-        </Pressable>
-      </ThemedView>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content"/>
+      {/* <View style={styles.header}>
+        <Text style={styles.headerText}>Sign in</Text>
+        <View style={styles.underline} />
+      </View> */}
+      <WaveUI underlineTxt='Sign' restTxt='in'/>
 
-      {/* Subtext */}
-      <ThemedText className="text-xs max-w-[280px] mb-8">
-        Please enter your credentials to access your account and stand a chance to win items.
-      </ThemedText>
+      <View style={styles.form}>
+        <Text style={styles.label}>Phone Number</Text>
+        <InputField
+          icon="call-outline"
+          placeholder="Enter your phone number"
+          keyboardType="phone-pad"
+          maxLength={11}
+          numbersOnly
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+        />
 
-      {/* Form */}
-      <ThemedView className="flex gap-6">
-        {/* Phone Number */}
-        <ThemedView className="flex flex-col gap-2">
-          <ThemedText className="text-sm">Phone Number</ThemedText>
-          <TextInput
-            className="p-4 w-full text-sm rounded-full border border-gray-300"
-            placeholder="09012345678"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            placeholderTextColor="#999"
-          />
-        </ThemedView>
+        <Text style={styles.label}>Password</Text>
+        <InputField
+          icon="lock-closed-outline"
+          placeholder="Enter your password"
+          secureTextEntry
+          onChangeText={setPassword}
+        />
 
-        {/* Password */}
-        <ThemedView className="flex flex-col gap-2">
-          <ThemedText className="text-sm">Password</ThemedText>
-          <ThemedView className="relative w-full">
-            <TextInput
-              className="p-4 pr-12 w-full text-sm rounded-full border border-gray-300"
-              placeholder="Enter your password"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-              placeholderTextColor="#999"
-            />
-            <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              className="absolute top-4 right-4">
-              {showPassword ? (
-                <Ionicons name="eye-off" size={24} color="black" />
-              ) : (
-                <Ionicons name="eye" size={24} color="black" />
-              )}
-            </Pressable>
-          </ThemedView>
-        </ThemedView>
+        <View style={styles.options}>
+          <Checkbox label="Remember Me" />
+          <AuthLink label="Forgot Password?" onPress={() => console.log('Forgot password pressed')} />
+        </View>
 
-        {/* Remember me and Forgot Password */}
-        <ThemedView className="flex-row justify-between items-center mt-2">
-          <ThemedView className="flex-row items-center space-x-2">
-            <ThemedView className="w-4 h-4 rounded border border-gray-400" />
-            <ThemedText className="text-sm">Remember me</ThemedText>
-          </ThemedView>
-          <TouchableOpacity>
-            <ThemedText className="text-sm font-bold text-primary">Forgot Password?</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
+        <AuthButton title="Login" onPress={handleLogin} />
 
-        {/* Login Button */}
-        <TouchableOpacity className="p-4 mt-6 rounded-full bg-primary">
-          <ThemedText className="font-bold text-center text-white">Login</ThemedText>
-        </TouchableOpacity>
-
-        {/* Signup Link */}
-        <TouchableOpacity className="mt-6">
-          <ThemedText className="text-sm text-center">
-            Not Registered yet?.
-            <ThemedText className="font-bold text-primary">Create an Account</ThemedText>
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-    </ThemedView>
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>Don’t have an Account?</Text>
+          <AuthLink label=" Sign up" onPress={() => router.navigate("/(auth)/register")} />
+        </View>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    backgroundColor: '#fa6c6c',
+    height: '35%',
+    borderBottomRightRadius: 60,
+    borderBottomLeftRadius: 60,
+    justifyContent: 'flex-end',
+    padding: 30,
+  },
+  headerText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  underline: {
+    height: 4,
+    width: 60,
+    backgroundColor: '#fff',
+    marginTop: 8,
+    borderRadius: 2,
+  },
+  form: {
+    padding: 30,
+    marginTop: 40,
+  },
+  label: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 5,
+    marginTop: 20,
+  },
+  options: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 25,
+  },
+  signupText: {
+    fontSize: 13,
+    color: '#333',
+  },
+});
