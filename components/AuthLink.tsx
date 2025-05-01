@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import React from 'react';
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -17,7 +18,7 @@ const AuthLink: React.FC<LinkProps> = ({ label, onPress }) => {
 const styles = StyleSheet.create({
   linkText: {
     fontSize: 12,
-    color: '#fa6c6c',
+    color: Colors.light.primary,
     fontWeight: 'bold',
   },
 });

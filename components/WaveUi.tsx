@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import { Path1, Path2 } from '@/constants/Paths';
 import React from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
@@ -16,7 +17,7 @@ const WaveUI = ({underlineTxt, restTxt, size=38}:Props) => {
   
   return (
     <View style={styles.container}>
-      <View style={{ backgroundColor: '#fa6c6c', height: 200 }}>
+      <View style={{ backgroundColor: Colors.light.primary, height: 200 }}>
         <Svg
           height="60%"
           width="100%"
@@ -24,7 +25,7 @@ const WaveUI = ({underlineTxt, restTxt, size=38}:Props) => {
           style={{ position: 'absolute', top: 180 }}
         >
           <Path
-            fill="#fa6c6c"
+            fill={Colors.light.primary}
             d={Path2}
           />
         </Svg>

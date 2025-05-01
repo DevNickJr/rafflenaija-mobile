@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 
@@ -47,11 +48,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   solid: {
-    backgroundColor: '#fa6c6c',
+    backgroundColor: Colors.light.primary,
   },
   outline: {
     borderWidth: 1,
-    borderColor: '#fa6c6c',
+    borderColor: Colors.light.primary,
     backgroundColor: 'transparent',
   },
   disabled: {
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   outlineText: {
-    color: '#fa6c6c',
+    color: Colors.light.primary,
   },
   disabledText: {
     color: '#888',

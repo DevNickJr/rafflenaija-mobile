@@ -7,6 +7,7 @@ import {
   TextInputProps,
 } from 'react-native';
 import { Ionicons as Icon } from '@expo/vector-icons';
+import { Colors } from '@/constants/Colors';
 
 interface InputFieldProps extends TextInputProps {
   icon: keyof typeof Icon.glyphMap;
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomColor: '#fa6c6c',
+    borderBottomColor: Colors.light.primary,
     borderBottomWidth: 1,
     paddingVertical: 5,
   },

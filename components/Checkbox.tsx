@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderWidth: 1,
-    borderColor: '#fa6c6c',
+    borderColor: Colors.light.primary,
     marginRight: 6,
   },
   rememberText: {
