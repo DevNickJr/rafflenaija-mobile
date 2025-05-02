@@ -46,7 +46,7 @@ export default function RootLayout() {
         </SessionProvider>
         <StatusBar style="auto" />
       </ThemeProvider>
-      <StatusBar style="auto" />
+      {/* <StatusBar style="auto" /> */}
     </QueryClientProvider>
   );
 }

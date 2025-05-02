@@ -1,4 +1,5 @@
 import { useStorageState } from '@/hooks/useStorage';
+import { router } from 'expo-router';
 import { createContext, type PropsWithChildren, useContext } from 'react';
 
 const AuthContext = createContext<{
@@ -31,7 +32,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
       value={{
         signIn: () => {
           // Perform sign-in logic here
+          console.log("Signn In the user")
           setSession('xxx');
+          router.replace("/(tabs)")
         },
         signOut: () => {
           setSession(null);
