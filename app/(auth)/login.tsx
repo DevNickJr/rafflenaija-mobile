@@ -13,6 +13,7 @@ export default function Login() {
     const { signIn } = useSession();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [isChecked, setChecked] = useState(false);
 
   const handleLogin = () => {
     // Handle login logic
@@ -47,7 +48,7 @@ export default function Login() {
         />
 
         <View style={styles.options}>
-          <Checkbox label="Remember Me" />
+          <Checkbox label="Remember Me" isChecked={isChecked} setChecked={setChecked}/>
           <AuthLink label="Forgot Password?" onPress={() => router.navigate("/(auth)/phone")} />
         </View>
 
