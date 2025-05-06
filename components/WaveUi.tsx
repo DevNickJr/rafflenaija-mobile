@@ -7,14 +7,13 @@ import Svg, { Path } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
-type Props={
-  underlineTxt:string;
-  restTxt:string,
-  size?:number
-}
+type Props = {
+  underlineTxt: string;
+  restTxt: string;
+  size?: number;
+};
 
-const WaveUI = ({underlineTxt, restTxt, size=38}:Props) => {
-  
+const WaveUI = ({ underlineTxt, restTxt, size = 38 }: Props) => {
   return (
     <View style={styles.container}>
       <View style={{ backgroundColor: Colors.light.primary, height: 200 }}>
@@ -22,19 +21,16 @@ const WaveUI = ({underlineTxt, restTxt, size=38}:Props) => {
           height="60%"
           width="100%"
           viewBox="0 0 1440 320"
-          style={{ position: 'absolute', top: 180 }}
-        >
-          <Path
-            fill={Colors.light.primary}
-            d={Path2}
-          />
+          style={{ position: 'absolute', top: 180 }}>
+          <Path fill={Colors.light.primary} d={Path2} />
         </Svg>
       </View>
 
       <View style={styles.textcontainer}>
-         <Text style={{fontSize:size,fontWeight:"600",}}>
-          <Text style={{textDecorationLine:"underline",paddingBottom:30}}>{underlineTxt}</Text> {restTxt}
-         </Text>
+        <Text style={{ fontSize: size, fontWeight: '600' }}>
+          <Text style={{ textDecorationLine: 'underline', paddingBottom: 30 }}>{underlineTxt}</Text>{' '}
+          {restTxt}
+        </Text>
       </View>
     </View>
   );
@@ -49,15 +45,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
   },
-  textcontainer:{
-    marginTop:30,
-    marginLeft:30,
-    width:150
+  textcontainer: {
+    marginTop: 60,
+    marginLeft: 30,
+    width: 150,
   },
-  text:{
-    fontSize:38, 
-    fontWeight:"600",
-  }
+  text: {
+    fontSize: 38,
+    fontWeight: '600',
+  },
 });
 
 export default WaveUI;

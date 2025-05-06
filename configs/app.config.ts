@@ -1,5 +1,5 @@
 const appConfig = {
-  apiPrefix: process.env.NEXT_PUBLIC_API_ENDPOINT,
+  apiPrefix: process.env.PUBLIC_API_ENDPOINT || 'https://api.rafflenaija.com/api',
 };
 
 export default appConfig;

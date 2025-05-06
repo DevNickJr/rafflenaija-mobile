@@ -12,7 +12,7 @@ import {
   IDuration,
   IEmail,
   IOTP,
-} from '@/interface';
+} from '@/interfaces';
 import BaseService from './BaseService';
 
 const servicePrefix = '/auth';

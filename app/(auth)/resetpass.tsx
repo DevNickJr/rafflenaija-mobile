@@ -26,7 +26,7 @@ const ResetPassword = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <WaveUI underlineTxt="" restTxt="" />
-      <Text style={{ fontSize: 24, fontWeight: "600", marginLeft:30 }}>Reset Password</Text>
+      <Text style={{ fontSize: 24, fontWeight: '600', marginLeft: 30 }}>Reset Password</Text>
 
       <View style={styles.form}>
         <Text style={styles.label}>New Password</Text>

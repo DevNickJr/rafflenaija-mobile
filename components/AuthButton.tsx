@@ -25,15 +25,13 @@ const AuthButton: React.FC<ButtonProps> = ({
         disabled && styles.disabled,
       ]}
       onPress={onPress}
-      disabled={disabled}
-    >
+      disabled={disabled}>
       <Text
         style={[
           styles.buttonText,
           isOutline ? styles.outlineText : {},
           disabled && styles.disabledText,
-        ]}
-      >
+        ]}>
         {title}
       </Text>
     </TouchableOpacity>

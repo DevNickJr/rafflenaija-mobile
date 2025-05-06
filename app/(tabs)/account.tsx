@@ -2,28 +2,31 @@
 import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { FontAwesome5, MaterialIcons, Ionicons, Entypo } from '@expo/vector-icons';
-import { useSession } from '@/providers/SessionProvider'
+import { useSession } from '@/providers/SessionProvider';
 import { Href, router } from 'expo-router';
 
 type MenuItem = {
   title: string;
   icon: ReactNode; // because you're passing JSX elements like <FontAwesome5 ... />
-  href?:Href
+  href?: Href;
 };
 
-const menuItems:MenuItem[] = [
+const menuItems: MenuItem[] = [
   { title: 'Account Info', icon: <FontAwesome5 name="user" size={20} color="#333" /> },
   { title: 'Deposit', icon: <FontAwesome5 name="wallet" size={20} color="#333" /> },
   { title: 'Withdraw', icon: <FontAwesome5 name="money-bill-wave" size={20} color="#333" /> },
   { title: 'Games History', icon: <MaterialIcons name="history" size={20} color="#333" /> },
   { title: 'Transactions', icon: <FontAwesome5 name="receipt" size={20} color="#333" /> },
   { title: 'Safety & Security', icon: <Ionicons name="shield-checkmark" size={20} color="#333" /> },
-  { title: 'Log Out', icon: <Entypo name="log-out" size={20} color="#E53935" />, href:"/(auth)/login"},
+  {
+    title: 'Log Out',
+    icon: <Entypo name="log-out" size={20} color="#E53935" />,
+    href: '/(auth)/login',
+  },
 ];
 
-const accounnt = () => {
-
-  const{signOut}=useSession()
+const Account = () => {
+  const { signOut } = useSession();
 
   return (
     <ScrollView style={styles.container}>
@@ -34,17 +37,13 @@ const accounnt = () => {
         {menuItems.map((item, idx) => (
           <TouchableOpacity
             key={idx}
-            style={[
-              styles.menuItem,
-              idx !== menuItems.length - 1 && styles.menuItemSeparator,
-            ]}
+            style={[styles.menuItem, idx !== menuItems.length - 1 && styles.menuItemSeparator]}
             onPress={() => {
               if (item.title === 'Log Out' && item.href) {
                 signOut();
                 router.replace(item.href);
               }
-            }}
-          >
+            }}>
             <View style={styles.iconWrapper}>{item.icon}</View>
             <Text style={[styles.menuText, item.title === 'Log Out' && { color: '#E53935' }]}>
               {item.title}
@@ -52,12 +51,11 @@ const accounnt = () => {
           </TouchableOpacity>
         ))}
       </View>
-
     </ScrollView>
   );
 };
 
-export default accounnt;
+export default Account;
 
 const styles = StyleSheet.create({
   container: {
@@ -86,7 +84,7 @@ const styles = StyleSheet.create({
   },
 
   menuContainer: {
-    marginTop:20,
+    marginTop: 20,
     backgroundColor: '#fff',
     marginHorizontal: 15,
     borderRadius: 15,
@@ -97,16 +95,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
   },
-  
+
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
   },
-  
+
   menuItemSeparator: {
     borderBottomColor: '#ccc',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  
 });

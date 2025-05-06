@@ -1,4 +1,3 @@
-import { ICategory, IPurchaseTicket, IReferralWithdraw } from '@/interface';
 import BaseService from './BaseService';
 
 const servicePrefix = '/games';

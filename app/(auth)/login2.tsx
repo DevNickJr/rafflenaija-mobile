@@ -6,12 +6,10 @@ import { ThemedView } from '@/components/ThemedView';
 import { useSession } from '@/providers/SessionProvider';
 
 export default function LoginScreen() {
-  const {signIn} = useSession();
+  const { signIn } = useSession();
   const [showPassword, setShowPassword] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
-
-
 
   return (
     <ThemedView className="flex flex-1 justify-center px-6 py-10 bg-white">
@@ -84,14 +82,12 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         {/* Login Button */}
-        <TouchableOpacity 
-        onPress={()=>signIn()}
-        className="p-4 mt-6 rounded-full bg-primary">
+        <TouchableOpacity onPress={() => signIn()} className="p-4 mt-6 rounded-full bg-primary">
           <ThemedText className="font-bold text-center text-white">Login</ThemedText>
         </TouchableOpacity>
 
         {/* Signup Link */}
-        <TouchableOpacity className="mt-6" >
+        <TouchableOpacity className="mt-6">
           <ThemedText className="text-sm text-center">
             Not Registered yet?.
             <ThemedText className="font-bold text-primary">Create an Account</ThemedText>

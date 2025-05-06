@@ -20,12 +20,12 @@ export default function SignIn() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content"/>
+      <StatusBar barStyle="light-content" />
       {/* <View style={styles.header}>
         <Text style={styles.headerText}>Sign in</Text>
         <View style={styles.underline} />
       </View> */}
-      <WaveUI underlineTxt='Sign' restTxt='up'/>
+      <WaveUI underlineTxt="Sign" restTxt="up" />
 
       <View style={styles.form}>
         <Text style={styles.label}>Phone Number</Text>
@@ -57,7 +57,7 @@ export default function SignIn() {
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>Already have an Account?</Text>
-          <AuthLink label=" Login" onPress={() => router.replace("/(auth)/login")} />
+          <AuthLink label=" Login" onPress={() => router.replace('/(auth)/login')} />
         </View>
       </View>
     </View>
