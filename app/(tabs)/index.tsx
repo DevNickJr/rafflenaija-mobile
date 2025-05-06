@@ -31,7 +31,7 @@ type SlideImage = {
 };
 
 const slideImages: SlideImage[] = [
-  { id: 1, image: require('@/assets/images/homelogo.png') },
+  { id: 1, image: require('@/assets/images/favicon.png') },
   { id: 2, image: require('@/assets/images/react-logo.png') },
   { id: 3, image: require('@/assets/images/homelogo.png') }
 ];

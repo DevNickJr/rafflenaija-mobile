@@ -1,5 +1,6 @@
 // screens/AccountScreen.tsx
 import React, { ReactNode } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { FontAwesome5, MaterialIcons, Ionicons, Entypo } from '@expo/vector-icons';
 import { useSession } from '@/providers/SessionProvider'
@@ -12,16 +13,16 @@ type MenuItem = {
 };
 
 const menuItems:MenuItem[] = [
-  { title: 'Account Info', icon: <FontAwesome5 name="user" size={20} color="#333" /> },
-  { title: 'Deposit', icon: <FontAwesome5 name="wallet" size={20} color="#333" /> },
-  { title: 'Withdraw', icon: <FontAwesome5 name="money-bill-wave" size={20} color="#333" /> },
+  { title: 'Account Info', icon: <FontAwesome5 name="user" size={20} color="#333" />, href:"/(mainscreens)/AccountInfo" },
+  { title: 'Deposit', icon: <FontAwesome5 name="wallet" size={20} color="#333" />, href:"/(mainscreens)/Deposit" },
+  { title: 'Withdraw', icon: <FontAwesome5 name="money-bill-wave" size={20} color="#333" />, href:"/(mainscreens)/Withdraw" },
   { title: 'Games History', icon: <MaterialIcons name="history" size={20} color="#333" /> },
   { title: 'Transactions', icon: <FontAwesome5 name="receipt" size={20} color="#333" /> },
-  { title: 'Safety & Security', icon: <Ionicons name="shield-checkmark" size={20} color="#333" /> },
+  { title: 'Safety & Security', icon: <Ionicons name="shield-checkmark" size={20} color="#333" />, href:"/(mainscreens)/SafetySecurity" },
   { title: 'Log Out', icon: <Entypo name="log-out" size={20} color="#E53935" />, href:"/(auth)/login"},
 ];
 
-const accounnt = () => {
+const Accounnt = () => {
 
   const{signOut}=useSession()
 
@@ -38,10 +39,13 @@ const accounnt = () => {
               styles.menuItem,
               idx !== menuItems.length - 1 && styles.menuItemSeparator,
             ]}
-            onPress={() => {
+            onPress={async() => {
               if (item.title === 'Log Out' && item.href) {
                 signOut();
+                await SecureStore.deleteItemAsync('NAVIGATION_STATE');
                 router.replace(item.href);
+              }else if(item.href){
+                router.push(item.href)
               }
             }}
           >
@@ -57,7 +61,7 @@ const accounnt = () => {
   );
 };
 
-export default accounnt;
+export default Accounnt;
 
 const styles = StyleSheet.create({
   container: {
