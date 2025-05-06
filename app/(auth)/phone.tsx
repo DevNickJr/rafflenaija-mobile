@@ -1,6 +1,6 @@
-import { StatusBar, StyleSheet, Text, View } from 'react-native'
-import React, { useState } from 'react'
-import WaveUI from '@/components/WaveUi'
+import { StatusBar, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import WaveUI from '@/components/WaveUi';
 import InputField from '@/components/AuthInput';
 import authStyle from '@/constants/authStyles';
 import AuthButton from '@/components/AuthButton';
@@ -13,18 +13,20 @@ const Phone = () => {
 
   const requestOtp = () => {
     router.push({
-      pathname: "/(auth)/otp",
-      params: { phone: phoneNumber }
+      pathname: '/(auth)/otp',
+      params: { phone: phoneNumber },
     });
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <WaveUI underlineTxt='' restTxt='' />
+      <WaveUI underlineTxt="" restTxt="" />
 
       <View style={styles.form}>
-        <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>Enter Your Phone Number</Text>
+        <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 10 }}>
+          Enter Your Phone Number
+        </Text>
 
         <InputField
           icon="call-outline"
@@ -51,6 +53,6 @@ const styles = StyleSheet.create({
   },
   form: {
     padding: 20,
-    gap: 10
-  }
+    gap: 10,
+  },
 });

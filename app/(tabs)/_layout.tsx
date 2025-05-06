@@ -10,7 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSession } from '@/providers/SessionProvider';
 
 export default function TabLayout() {
-  const { session, isLoading } = useSession();
+  const { access_token, is_logged_in, isLoading } = useSession();
   const colorScheme = useColorScheme();
 
   // You can keep the splash screen open, or render a loading screen like we do here.
@@ -19,8 +19,10 @@ export default function TabLayout() {
   }
 
   // Only require authentication within the (app) group's layout as users
+  console.log('here', access_token, is_logged_in);
   // need to be able to access the (auth) group and sign in again.
-  if (!session) {
+  if (!access_token || !is_logged_in) {
+    console.log('Redirecting to login');
     return <Redirect href="/login" />;
   }
 
@@ -40,7 +42,7 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,

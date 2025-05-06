@@ -1,4 +1,4 @@
-import { IReferralWithdraw, IWithdraw } from '@/interface';
+import { IReferralWithdraw } from '@/interfaces';
 import BaseService from './BaseService';
 
 const servicePrefix = '/referral';

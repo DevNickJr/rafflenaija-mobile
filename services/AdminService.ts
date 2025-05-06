@@ -1,13 +1,5 @@
-import {
-  ICategory,
-  ICreateItem,
-  ICreateRaffle,
-  IDuration,
-  IPurchaseTicket,
-  IReferralWithdraw,
-} from '@/interface';
+import { ICategory, ICreateRaffle, IDuration } from '@/interfaces';
 import BaseService from './BaseService';
-import { toast } from 'react-toastify';
 
 const servicePrefix = '/backoffice';
 
@@ -93,9 +85,6 @@ export const apiDeleteBanner = (data: {}, { token, id }: { token: string; id: st
 };
 export const apiCreateRaffleItem = (data: FormData, { token }: { token: string }) => {
   const id = data.get('category');
-  if (!id) {
-    toast.info('Provide Id');
-  }
   return BaseService.post(
     `${servicePrefix}/items/${id}/`,
     data,

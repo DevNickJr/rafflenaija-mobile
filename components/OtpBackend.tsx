@@ -45,8 +45,7 @@ const OtpBackend: React.FC<OtpBackendProps> = ({ code, setCode, maxLength, setPi
         style={[
           styles.otpInput,
           inputFocaused && isDigitFocused ? styles.otpInputActive : styles.otpInputInActive,
-        ]}
-      >
+        ]}>
         <Text style={styles.otpInputText}>{digit}</Text>
       </View>
     );
@@ -84,7 +83,7 @@ const styles = StyleSheet.create({
     width: 300,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    gap:4
+    gap: 4,
   },
   otpInput: {
     borderWidth: 2,

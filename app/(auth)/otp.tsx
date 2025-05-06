@@ -20,7 +20,7 @@ const OtoInput: React.FC = () => {
       return;
     }
 
-    const interval = setInterval(() => setTimer(prev => prev - 1), 1000);
+    const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     return () => clearInterval(interval);
   }, [timer]);
 
@@ -32,8 +32,8 @@ const OtoInput: React.FC = () => {
 
   const verifyOtp = () => {
     router.push({
-      pathname: "/(auth)/resetpass",
-      params: { phone }
+      pathname: '/(auth)/resetpass',
+      params: { phone },
     });
   };
 
@@ -45,7 +45,7 @@ const OtoInput: React.FC = () => {
 
   return (
     <Pressable onPress={Keyboard.dismiss} style={styles.container}>
-      <WaveUI underlineTxt='' restTxt='OTP' />
+      <WaveUI underlineTxt="" restTxt="OTP" />
       <View style={styles.wrapper}>
         <OtpBackend
           setPinReady={setPinReady}
@@ -64,9 +64,7 @@ const OtoInput: React.FC = () => {
           disabled={!pinReady || code.length < max_code_length}
         />
 
-        {resendEnabled && (
-          <AuthButton title="Resend OTP" onPress={resendOtp} variant="outline" />
-        )}
+        {resendEnabled && <AuthButton title="Resend OTP" onPress={resendOtp} variant="outline" />}
       </View>
     </Pressable>
   );

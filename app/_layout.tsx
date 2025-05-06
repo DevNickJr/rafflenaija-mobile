@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { SessionProvider } from '@/providers/SessionProvider';
+import Toast from 'react-native-toast-message';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -46,6 +47,7 @@ export default function RootLayout() {
           </Stack>
         </SessionProvider>
         <StatusBar style="auto" />
+        <Toast />
       </ThemeProvider>
       {/* <StatusBar style="auto" /> */}
     </QueryClientProvider>

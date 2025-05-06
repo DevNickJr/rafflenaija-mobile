@@ -17,11 +17,7 @@ const UserIdCard = () => {
         <Text style={styles.txtStyle}>08082332823</Text>
 
         <View style={styles.balanceContainer}>
-          <Text
-            style={[styles.txtStyle, { flex: 1 }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+          <Text style={[styles.txtStyle, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
             {showBalance ? 'NGN 2,800,400.00' : '****'}
           </Text>
 
