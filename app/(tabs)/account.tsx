@@ -17,7 +17,7 @@ const menuItems: MenuItem[] = [
   { title: 'Deposit', icon: <FontAwesome5 name="wallet" size={20} color="#333" />, href:"/(mainscreens)/Deposit" },
   { title: 'Withdraw', icon: <FontAwesome5 name="money-bill-wave" size={20} color="#333" />, href:"/(mainscreens)/Withdraw" },
   { title: 'Games History', icon: <MaterialIcons name="history" size={20} color="#333" /> },
-  { title: 'Transactions', icon: <FontAwesome5 name="receipt" size={20} color="#333" /> },
+  { title: 'Transactions', icon: <FontAwesome5 name="receipt" size={20} color="#333" />, href:"/(mainscreens)/Transaction" },
   { title: 'Safety & Security', icon: <Ionicons name="shield-checkmark" size={20} color="#333" />, href:"/(mainscreens)/SafetySecurity" },
   { title: 'Log Out', icon: <Entypo name="log-out" size={20} color="#E53935" />, href:"/(auth)/login"},
 ];
