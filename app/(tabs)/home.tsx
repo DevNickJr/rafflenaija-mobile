@@ -15,11 +15,12 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import UserIdCard from '@/components/UserIdCard';
 import { Colors } from '@/constants/Colors';
+import { SafeView } from '@/components/SafeView';
 
 const { width } = Dimensions.get('screen');
 const NUM_CARDS = 5;
 const CARD_GAP = 8; // margin: 4 on each side = 8 total
-const SIDE_PADDING = 40; // 20 left + 20 right from styles.container
+const SIDE_PADDING = 20; // 20 left + 20 right from styles.container
 
 const totalGapWidth = CARD_GAP * (NUM_CARDS - 1);
 const availableWidth = width - SIDE_PADDING - totalGapWidth;
@@ -133,7 +134,7 @@ const HomeScreen = () => {
   //     </TouchableOpacity>
   //   );
   // };
-  const CodeCard = React.memo(({ item }: { item: string }) => {
+  const CodeCard = React.memo(({ item, index }: { item: string; index: number; }) => {
     const isRaffled = item.includes('1');
     return (
       <TouchableOpacity
@@ -141,7 +142,9 @@ const HomeScreen = () => {
           {
             width: cardSize,
             height: cardSize,
-            margin: 4,
+            margin: CARD_GAP/2,
+            marginLeft: index % NUM_CARDS === 0 ? 0 : CARD_GAP/2,
+            marginRight: index % NUM_CARDS === (NUM_CARDS-1) ? 0 : CARD_GAP/2
           },
           styles.rafCard,
           isRaffled && styles.raffledCard,
@@ -152,7 +155,7 @@ const HomeScreen = () => {
       </TouchableOpacity>
     );
   });
-  const renderCodeItem: ListRenderItem<string> = ({ item }) => <CodeCard item={item} />;
+  const renderCodeItem: ListRenderItem<string> = ({ item, index }) => <CodeCard item={item} index={index} />;
 
   const renderHeader = () => (
     <View>
@@ -203,20 +206,21 @@ const HomeScreen = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android"?20:0 }}>
+    <SafeView style={{ backgroundColor:"#f4f7f9" }}>
+    {/* <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android" ? 20 : 0 }}> */}
       <View style={styles.container}>
         <FlatList
           data={codes}
           ref={flatListRef}
           keyExtractor={(item) => item}
-          numColumns={5}
+          numColumns={NUM_CARDS}
           renderItem={renderCodeItem}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         />
       </View>
-    </SafeAreaView>
+    </SafeView>
   );
 };
 
@@ -225,15 +229,18 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
-    paddingHorizontal: 16,
+    // paddingTop: 20,
+    paddingLeft: SIDE_PADDING/2,
+    paddingHorizontal: SIDE_PADDING/2,
+    backgroundColor: '#f4f7f9',
   },
   categoryStyle: {
     paddingVertical: 8,
     gap: 6,
   },
   catItem: {
-    backgroundColor: '#f0f0f0',
+    // backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff',
     padding: 8,
     borderRadius: 4,
     marginRight: 8,

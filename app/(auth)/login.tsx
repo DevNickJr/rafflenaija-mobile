@@ -34,7 +34,6 @@ export default function Login() {
 
   const loginMutation = useMutate<IUserLogin, any>(apiLogin, {
     onSuccess: (data: IResponseData<ILoginResponse>) => {
-      console.log({ data });
       signIn({
         ...data?.data?.user,
         access_token: data?.data?.access_token,
@@ -73,7 +72,7 @@ export default function Login() {
   });
   // showErrortext1: true,
 
-  const login = async (user: IUserLogin) => {
+  const login = async () => {
     if (!user.phone_number) {
       Toast.show({
         type: 'info',
@@ -166,7 +165,7 @@ export default function Login() {
           <AuthLink label="Forgot Password?" onPress={() => router.navigate('/(auth)/phone')} />
         </View>
 
-        <AuthButton title="Login" onPress={() => dummyLogin()} />
+        <AuthButton title="Login" onPress={login} />
         {/* <AuthButton title="Login" onPress={() => login(user)} /> */}
 
         <View style={styles.signupContainer}>

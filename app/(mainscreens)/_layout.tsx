@@ -3,7 +3,7 @@ import { useSession } from '@/providers/SessionProvider';
 import { Redirect, Stack } from 'expo-router';
 
 export default function MainLayout() {
-  const { session, isLoading } = useSession();
+  const value = useSession();
   //const colorScheme = useColorScheme();
 
   // You can keep the splash screen open, or render a loading screen like we do here.
@@ -13,15 +13,10 @@ export default function MainLayout() {
 
   // Only require authentication within the (app) group's layout as users
   // need to be able to access the (auth) group and sign in again.
-  if (!session) {
+  if (!value.is_logged_in) {
     return <Redirect href="/login" />;
   }
 
-<<<<<<< HEAD
-=======
-    const { isLoading } = useSession();
-      //const colorScheme = useColorScheme();
-    
       // You can keep the splash screen open, or render a loading screen like we do here.
     //   if (isLoading) {
     //     return <Text>Loading...</Text>;
@@ -33,7 +28,6 @@ export default function MainLayout() {
       //   return <Redirect href="/login" />;
       // }
   
->>>>>>> 50dff033278e98b6ea0f32fca3184f358b0eb12b
   return (
     <Stack
       screenOptions={{
