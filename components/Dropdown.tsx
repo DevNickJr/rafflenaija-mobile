@@ -28,8 +28,7 @@ const Dropdown: React.FC<Props> = ({ label, options, value, onSelect }) => {
                 onPress={() => {
                   onSelect(option);
                   setVisible(false);
-                }}
-              >
+                }}>
                 <Text>{option}</Text>
               </TouchableOpacity>
             ))}

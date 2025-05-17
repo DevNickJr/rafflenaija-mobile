@@ -39,7 +39,9 @@ const ChangePasswordSection = () => {
         onChangeText={setNewPassword}
       />
 
-      <Pressable onPress={() => Alert.alert('Forgot Password')} style={{width:120, alignSelf:"flex-end"}}>
+      <Pressable
+        onPress={() => Alert.alert('Forgot Password')}
+        style={{ width: 120, alignSelf: 'flex-end' }}>
         <Text style={styles.forgotText}>Forgot Password?</Text>
       </Pressable>
 

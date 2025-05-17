@@ -13,13 +13,33 @@ type MenuItem = {
 };
 
 const menuItems: MenuItem[] = [
-  { title: 'Account Info', icon: <FontAwesome5 name="user" size={20} color="#333" />, href:"/(mainscreens)/AccountInfo" },
-  { title: 'Deposit', icon: <FontAwesome5 name="wallet" size={20} color="#333" />, href:"/(mainscreens)/Deposit" },
-  { title: 'Withdraw', icon: <FontAwesome5 name="money-bill-wave" size={20} color="#333" />, href:"/(mainscreens)/Withdraw" },
+  {
+    title: 'Account Info',
+    icon: <FontAwesome5 name="user" size={20} color="#333" />,
+    href: '/(mainscreens)/AccountInfo',
+  },
+  {
+    title: 'Deposit',
+    icon: <FontAwesome5 name="wallet" size={20} color="#333" />,
+    href: '/(mainscreens)/Deposit',
+  },
+  {
+    title: 'Withdraw',
+    icon: <FontAwesome5 name="money-bill-wave" size={20} color="#333" />,
+    href: '/(mainscreens)/Withdraw',
+  },
   { title: 'Games History', icon: <MaterialIcons name="history" size={20} color="#333" /> },
   { title: 'Transactions', icon: <FontAwesome5 name="receipt" size={20} color="#333" /> },
-  { title: 'Safety & Security', icon: <Ionicons name="shield-checkmark" size={20} color="#333" />, href:"/(mainscreens)/SafetySecurity" },
-  { title: 'Log Out', icon: <Entypo name="log-out" size={20} color="#E53935" />, href:"/(auth)/login"},
+  {
+    title: 'Safety & Security',
+    icon: <Ionicons name="shield-checkmark" size={20} color="#333" />,
+    href: '/(mainscreens)/SafetySecurity',
+  },
+  {
+    title: 'Log Out',
+    icon: <Entypo name="log-out" size={20} color="#E53935" />,
+    href: '/(auth)/login',
+  },
 ];
 
 const Account = () => {
@@ -35,13 +55,13 @@ const Account = () => {
           <TouchableOpacity
             key={idx}
             style={[styles.menuItem, idx !== menuItems.length - 1 && styles.menuItemSeparator]}
-            onPress={async() => {
+            onPress={async () => {
               if (item.title === 'Log Out' && item.href) {
                 signOut();
                 await SecureStore.deleteItemAsync('NAVIGATION_STATE');
                 router.replace(item.href);
-              }else if(item.href){
-                router.push(item.href)
+              } else if (item.href) {
+                router.push(item.href);
               }
             }}>
             <View style={styles.iconWrapper}>{item.icon}</View>

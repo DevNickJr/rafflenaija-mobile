@@ -49,7 +49,6 @@ const initialState: IAddBank = {
 //     },
 //   ];
 
-
 // const dummyAccounts: IBankAccount[] = [
 //     {
 //       id: '1',
@@ -73,13 +72,10 @@ const Withdraw = () => {
 
   const [selectedBank, setSelectedBank] = useState<string>('');
 
-  const [addBank, dispatch] = useReducer(
-    (state: IAddBank, action: IAddBankAction) => {
-      if (action.type === 'reset') return initialState;
-      return { ...state, [action.type]: action.payload };
-    },
-    initialState
-  );
+  const [addBank, dispatch] = useReducer((state: IAddBank, action: IAddBankAction) => {
+    if (action.type === 'reset') return initialState;
+    return { ...state, [action.type]: action.payload };
+  }, initialState);
 
   useEffect(() => {
     // Simulate API fetch
@@ -102,47 +98,46 @@ const Withdraw = () => {
     dispatch({ type: 'account_number', payload: val });
   };
 
-//   const handleSelectBank = (val: string) => {
-//     dispatch({ type: 'bank_code', payload: val });
-//     const bank = banks.find((b) => b.code === val);
-//     dispatch({ type: 'bank_name', payload: bank?.name || '' });
-//   };
-
+  //   const handleSelectBank = (val: string) => {
+  //     dispatch({ type: 'bank_code', payload: val });
+  //     const bank = banks.find((b) => b.code === val);
+  //     dispatch({ type: 'bank_name', payload: bank?.name || '' });
+  //   };
 
   const handleSelectBank = (val: string) => {
     setSelectedBank(val);
     // Additional logic here if needed
   };
 
-  const addUserBank=()=>{
+  const addUserBank = () => {
     if (!selectedBank || addBank.account_number.length !== 10) {
-        return alert('Please select a bank and enter a valid 10-digit account number');
-      }
-  
-      setLoading(true);
-  
-      setTimeout(() => {
-        const bank = banks.find((b) => b.name === selectedBank);
-        if (!bank) return alert('Bank not found');
-  
-        const newAccount: IBankAccount = {
-          id: (accounts.length + 1).toString(),
-          account_name: 'Simulated Name', // Replace with actual verified name if needed
-          account_number: addBank.account_number,
-          bank_code: bank.code,
-          bank_name: bank.name,
-          is_default: false,
-          recipient_code: `${bank.slug}_${addBank.account_number}`, // Simulated recipient code
-        };
-  
-        setAccounts((prev) => [...prev, newAccount]);
-        setBanks((prev) => prev.filter((b) => b.code !== bank.code));
-        setSelectedBank('');
-        // dispatch({ type: 'reset' });
-        setCurrAccount('');
-        setLoading(false);
-      }, 1000);
-  }
+      return alert('Please select a bank and enter a valid 10-digit account number');
+    }
+
+    setLoading(true);
+
+    setTimeout(() => {
+      const bank = banks.find((b) => b.name === selectedBank);
+      if (!bank) return alert('Bank not found');
+
+      const newAccount: IBankAccount = {
+        id: (accounts.length + 1).toString(),
+        account_name: 'Simulated Name', // Replace with actual verified name if needed
+        account_number: addBank.account_number,
+        bank_code: bank.code,
+        bank_name: bank.name,
+        is_default: false,
+        recipient_code: `${bank.slug}_${addBank.account_number}`, // Simulated recipient code
+      };
+
+      setAccounts((prev) => [...prev, newAccount]);
+      setBanks((prev) => prev.filter((b) => b.code !== bank.code));
+      setSelectedBank('');
+      // dispatch({ type: 'reset' });
+      setCurrAccount('');
+      setLoading(false);
+    }, 1000);
+  };
 
   const handleWithdraw = () => {
     const target = currAccount || accounts.find((a) => a.is_default)?.recipient_code;
@@ -170,93 +165,90 @@ const Withdraw = () => {
             setTransferTab(0);
             setActiveTab('BANK');
           }}
-          style={[styles.tab, activeTab === 'BANK' && styles.activeTab]}
-        >
+          style={[styles.tab, activeTab === 'BANK' && styles.activeTab]}>
           <Text style={activeTab === 'BANK' ? styles.activeText : styles.inactiveText}>Bank</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setActiveTab('TRANSFER')}
-          style={[styles.tab, activeTab === 'TRANSFER' && styles.activeTab]}
-        >
+          style={[styles.tab, activeTab === 'TRANSFER' && styles.activeTab]}>
           <Text style={activeTab === 'TRANSFER' ? styles.activeText : styles.inactiveText}>
             Transfer to Friends
           </Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{paddingBottom:30}} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 30 }}
+        showsVerticalScrollIndicator={false}>
         {activeTab === 'BANK' ? (
-            <View>
+          <View>
             {!noAccount && (
-                <View>
-                    {
-                        accounts.map((item,idx)=>{
-                            return(
-                                <View key={idx} style={styles.accountRow}>
-                                    <TouchableOpacity onPress={() => handleCurrentAccount(item.recipient_code)}>
-                                        <View style={styles.radioOuter}>
-                                        {currAccount === item.recipient_code && <View style={styles.radioInner} />}
-                                        </View>
-                                    </TouchableOpacity>
-                                    {/* <Image source={Logo} style={styles.logo} /> */}
-                                    <Text style={styles.bankName}>{item.bank_name}</Text>
-                                    <Text style={styles.accountNumber}>****{item.account_number.slice(6)}</Text>
-                                    <TouchableOpacity onPress={() => alert('Simulated delete')}>
-                                        <Ionicons name="trash" size={20} color="red" />
-                                    </TouchableOpacity>
-                                </View>
-                            )
-                        })
-                    }
-                </View>
-                
-            )}
-            
-            <View style={{flexDirection:"row", alignItems:"center", marginTop:20}}>
-                <TouchableOpacity onPress={() => handleCurrentAccount('5000')}>
-                    <View style={styles.radioOuter}>
-                        {currAccount === '5000' && <View style={styles.radioInner} />}
+              <View>
+                {accounts.map((item, idx) => {
+                  return (
+                    <View key={idx} style={styles.accountRow}>
+                      <TouchableOpacity onPress={() => handleCurrentAccount(item.recipient_code)}>
+                        <View style={styles.radioOuter}>
+                          {currAccount === item.recipient_code && (
+                            <View style={styles.radioInner} />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                      {/* <Image source={Logo} style={styles.logo} /> */}
+                      <Text style={styles.bankName}>{item.bank_name}</Text>
+                      <Text style={styles.accountNumber}>****{item.account_number.slice(6)}</Text>
+                      <TouchableOpacity onPress={() => alert('Simulated delete')}>
+                        <Ionicons name="trash" size={20} color="red" />
+                      </TouchableOpacity>
                     </View>
-                </TouchableOpacity>
-                <Text style={styles.subTitle}>Add New Bank Account</Text>
+                  );
+                })}
+              </View>
+            )}
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
+              <TouchableOpacity onPress={() => handleCurrentAccount('5000')}>
+                <View style={styles.radioOuter}>
+                  {currAccount === '5000' && <View style={styles.radioInner} />}
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.subTitle}>Add New Bank Account</Text>
             </View>
-            {
-                (currAccount ==='5000')&&
-                <View>
+            {currAccount === '5000' && (
+              <View>
                 <DropDownScroll
-                    label="Select Bank"
-                    options={banks.map((bank) => bank.name)}
-                    value={selectedBank}
-                    onSelect={handleSelectBank}
+                  label="Select Bank"
+                  options={banks.map((bank) => bank.name)}
+                  value={selectedBank}
+                  onSelect={handleSelectBank}
                 />
                 <TextInput
-                    placeholder="Account Number"
-                    keyboardType="numeric"
-                    value={addBank.account_number}
-                    onChangeText={handleAccountNumber}
-                    style={styles.input}
+                  placeholder="Account Number"
+                  keyboardType="numeric"
+                  value={addBank.account_number}
+                  onChangeText={handleAccountNumber}
+                  style={styles.input}
                 />
                 <TouchableOpacity onPress={() => addUserBank()} style={styles.btn}>
-                    <Text style={styles.btnText}>Add Bank</Text>
+                  <Text style={styles.btnText}>Add Bank</Text>
                 </TouchableOpacity>
-                </View>
-            }
-            <Text style={{marginTop:10, color:"#000"}}>Enter Amount (NGN)</Text>
+              </View>
+            )}
+            <Text style={{ marginTop: 10, color: '#000' }}>Enter Amount (NGN)</Text>
             <TextInput
-                placeholder="min 50.00"
-                keyboardType="numeric"
-                value={amount?.toString()}
-                onChangeText={(val) => setAmount(Number(val))}
-                style={styles.input}
+              placeholder="min 50.00"
+              keyboardType="numeric"
+              value={amount?.toString()}
+              onChangeText={(val) => setAmount(Number(val))}
+              style={styles.input}
             />
             <TouchableOpacity onPress={handleWithdraw} style={styles.btn}>
-                <Text style={styles.btnText}>Withdraw</Text>
+              <Text style={styles.btnText}>Withdraw</Text>
             </TouchableOpacity>
-            </View>
+          </View>
         ) : (
-            <TransferToFriend/>
+          <TransferToFriend />
         )}
-
       </ScrollView>
     </View>
   );
@@ -265,99 +257,98 @@ const Withdraw = () => {
 export default Withdraw;
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 16,
-      backgroundColor: '#fff',
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 20,
-    },
-    tabContainer: {
-      flexDirection: 'row',
-      marginBottom: 20,
-    },
-    tab: {
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      marginRight: 10,
-    },
-    activeTab: {
-      borderBottomWidth: 2,
-      borderColor: Colors.light.primary,
-    },
-    activeText: {
-      color: Colors.light.primary,
-      fontWeight: 'bold',
-    },
-    inactiveText: {
-      color: '#aaa',
-    },
-    accountRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderColor: '#eee',
-    },
-    radioOuter: {
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      borderWidth: 2,
-      borderColor: Colors.light.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 10,
-    },
-    radioInner: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      backgroundColor: Colors.light.primary,
-    },
-    logo: {
-      width: 30,
-      height: 30,
-      marginRight: 8,
-    },
-    bankName: {
-      flex: 1,
-    },
-    accountNumber: {
-      marginRight: 10,
-    },
-    subTitle: {
-      //marginTop: 20,
-      fontWeight: '600',
-      fontSize: 16,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 6,
-      padding: 10,
-      marginTop: 10,
-    },
-    btn: {
-      backgroundColor: Colors.light.primary,
-      padding: 12,
-      borderRadius: 6,
-      marginTop: 15,
-    },
-    btnText: {
-      color: '#fff',
-      textAlign: 'center',
-      fontWeight: '600',
-    },
-    transferBox: {
-      height: 200,
-      backgroundColor: '#f1f1f1',
-      borderRadius: 10,
-      alignItems:"center",
-      justifyContent:"center"
-    },
-  });
-  
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginRight: 10,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderColor: Colors.light.primary,
+  },
+  activeText: {
+    color: Colors.light.primary,
+    fontWeight: 'bold',
+  },
+  inactiveText: {
+    color: '#aaa',
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.light.primary,
+  },
+  logo: {
+    width: 30,
+    height: 30,
+    marginRight: 8,
+  },
+  bankName: {
+    flex: 1,
+  },
+  accountNumber: {
+    marginRight: 10,
+  },
+  subTitle: {
+    //marginTop: 20,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    padding: 10,
+    marginTop: 10,
+  },
+  btn: {
+    backgroundColor: Colors.light.primary,
+    padding: 12,
+    borderRadius: 6,
+    marginTop: 15,
+  },
+  btnText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  transferBox: {
+    height: 200,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

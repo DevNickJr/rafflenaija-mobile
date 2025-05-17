@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import Dropdown from '../Dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ModalBtn from '../ModalBtn';
@@ -41,31 +35,25 @@ const RestrictAccount: React.FC<Props> = ({ visible, onCancel, onConfirm }) => {
       {(showDatePicker || selectedDate) && (
         <View style={{ marginTop: 20 }}>
           <Text style={styles.label}>Select End Date</Text>
-          <TouchableOpacity
-            style={styles.input}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text>
-              {selectedDate ? selectedDate.toDateString() : 'Choose date'}
-            </Text>
+          <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+            <Text>{selectedDate ? selectedDate.toDateString() : 'Choose date'}</Text>
           </TouchableOpacity>
-          {showDatePicker && (<DateTimePicker
-            value={selectedDate || new Date()}
-            mode="date"
-            display="default"
-            onChange={(_, date) => {
-              setShowDatePicker(false);
-              if (date) setSelectedDate(date);
-            }}
-          />)}
+          {showDatePicker && (
+            <DateTimePicker
+              value={selectedDate || new Date()}
+              mode="date"
+              display="default"
+              onChange={(_, date) => {
+                setShowDatePicker(false);
+                if (date) setSelectedDate(date);
+              }}
+            />
+          )}
         </View>
       )}
 
       {selectedDate && (
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleRestrictionContinue}
-        >
+        <TouchableOpacity style={styles.saveButton} onPress={handleRestrictionContinue}>
           <Text style={styles.saveText}>Continue</Text>
         </TouchableOpacity>
       )}
@@ -75,18 +63,18 @@ const RestrictAccount: React.FC<Props> = ({ visible, onCancel, onConfirm }) => {
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Restrict Account?</Text>
             <Text style={styles.modalText}>
-              Raffle Naija's Account Restriction feature enables users to temporarily close their accounts.
-              Throughout this period, users are unable to place bets or engage in card games, although
-              account access remains for fund withdrawal. Per Raffle Naija's risk management protocols, any
-              balance not previously wagered cannot be withdrawn.
+              Raffle Naija's Account Restriction feature enables users to temporarily close their
+              accounts. Throughout this period, users are unable to place bets or engage in card
+              games, although account access remains for fund withdrawal. Per Raffle Naija's risk
+              management protocols, any balance not previously wagered cannot be withdrawn.
             </Text>
             <Text style={styles.modalNote}>
               Please be noted that accounts can’t be re-enabled until the time period is concluded.
             </Text>
 
             <View style={styles.modalActions}>
-              <ModalBtn title='Cancle' onPress={onCancel} inverted/>
-              <ModalBtn title='OK' onPress={onConfirm}/>
+              <ModalBtn title="Cancle" onPress={onCancel} inverted />
+              <ModalBtn title="OK" onPress={onConfirm} />
             </View>
           </View>
         </View>
@@ -137,8 +125,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: '100%',
-    flexDirection:"column",
-    alignItems:"center",
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   modalTitle: {
     fontWeight: 'bold',
@@ -147,12 +135,12 @@ const styles = StyleSheet.create({
   },
   modalText: {
     marginBottom: 10,
-    textAlign:"center"
+    textAlign: 'center',
   },
   modalNote: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 20,
-    textAlign:"center"
+    textAlign: 'center',
   },
   modalActions: {
     flexDirection: 'row',

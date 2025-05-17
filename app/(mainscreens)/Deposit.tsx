@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform, ToastAndroid } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Platform,
+  ToastAndroid,
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import * as Clipboard from 'expo-clipboard';
@@ -10,7 +20,7 @@ const Deposit = () => {
   const [inProgress, setInProgress] = useState<boolean>(false);
   const [copiedText, setCopiedText] = useState<string>('');
 
-  const handleCopy = async(text: string) => {
+  const handleCopy = async (text: string) => {
     await Clipboard.setStringAsync(text);
     if (Platform.OS === 'android') {
       ToastAndroid.show('Copied to clipboard!', ToastAndroid.SHORT);
@@ -63,22 +73,31 @@ const Deposit = () => {
 
               <View style={styles.noteContainer}>
                 <Text style={styles.noteTitle}>NOTE</Text>
-                <Text style={styles.note}>• We do not share your payment information. It is used for transaction verification only.</Text>
-                <Text style={styles.note}>• If you have any issues, please contact customer service.</Text>
+                <Text style={styles.note}>
+                  • We do not share your payment information. It is used for transaction
+                  verification only.
+                </Text>
+                <Text style={styles.note}>
+                  • If you have any issues, please contact customer service.
+                </Text>
                 <Text style={styles.note}>• Minimum deposit amount is NGN 100.00.</Text>
                 <Text style={styles.note}>• Maximum per transaction is NGN 9,999,999.00.</Text>
               </View>
             </View>
           ) : (
             <View style={styles.paymentInfo}>
-              <Text style={styles.sectionTitle}>Send ₦{amount} from your bank to the account details below</Text>
+              <Text style={styles.sectionTitle}>
+                Send ₦{amount} from your bank to the account details below
+              </Text>
               <View style={styles.infoItem}>
                 <Text>Bank Name</Text>
                 <Text style={styles.bold}>Example Bank</Text>
               </View>
               <View style={styles.infoItem}>
                 <Text>Account Number</Text>
-                <TouchableOpacity onPress={() => handleCopy('1234567890')} style={styles.copyContainer}>
+                <TouchableOpacity
+                  onPress={() => handleCopy('1234567890')}
+                  style={styles.copyContainer}>
                   <Text style={styles.bold}>1234567890</Text>
                   <MaterialCommunityIcons name="content-copy" size={18} color="#000" />
                 </TouchableOpacity>
@@ -87,7 +106,10 @@ const Deposit = () => {
                 <Text>Account Name</Text>
                 <Text style={styles.bold}>Raffle Naija</Text>
               </View>
-              <Text style={styles.warning}>Note: Please do not transfer money into this account more than once. Transaction expires in 30mins.</Text>
+              <Text style={styles.warning}>
+                Note: Please do not transfer money into this account more than once. Transaction
+                expires in 30mins.
+              </Text>
               <TouchableOpacity style={styles.button} onPress={handlePaid}>
                 <Text style={styles.buttonText}>I have made payment</Text>
               </TouchableOpacity>
@@ -197,4 +219,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
-

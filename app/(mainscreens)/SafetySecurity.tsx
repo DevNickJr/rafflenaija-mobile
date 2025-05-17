@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import ChangePasswordSection from '@/components/safetytabs/ChangePasswordSection';
 import RestrictAccount from '@/components/safetytabs/RestrictAccountSection';
 import DeactivateAccount from '@/components/safetytabs/DeactivateAccount';
@@ -17,12 +11,11 @@ const SafetySecurityScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
 
-
   const handleTabPress = (tab: string) => {
     if (tab === 'Restrict Account') {
-        setShowModal(true);
+      setShowModal(true);
     } else if (tab === 'Deactivate Account') {
-        setShowDeactivateModal(true);
+      setShowDeactivateModal(true);
     }
     setActiveTab(tab);
   };
@@ -32,17 +25,19 @@ const SafetySecurityScreen = () => {
       case 'Change Password':
         return <ChangePasswordSection />;
       case 'Restrict Account':
-        return <RestrictAccount
-                    visible={showModal}
-                    onCancel={() => {
-                    setShowModal(false);
-                    setActiveTab('Change Password');
-                    }}
-                    onConfirm={() => {
-                    setShowModal(false);
-                    setActiveTab('Restrict Account');
-                    }}
-                />;
+        return (
+          <RestrictAccount
+            visible={showModal}
+            onCancel={() => {
+              setShowModal(false);
+              setActiveTab('Change Password');
+            }}
+            onConfirm={() => {
+              setShowModal(false);
+              setActiveTab('Restrict Account');
+            }}
+          />
+        );
       case 'Deactivate Account':
         return (
           <DeactivateAccount
@@ -68,8 +63,7 @@ const SafetySecurityScreen = () => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabContainer}
-        >
+          contentContainerStyle={styles.tabContainer}>
           {tabs.map((tab) => (
             <TouchableOpacity
               key={tab}
@@ -77,14 +71,8 @@ const SafetySecurityScreen = () => {
               style={[
                 styles.tab,
                 { borderBottomColor: activeTab === tab ? 'green' : 'transparent' },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  { color: activeTab === tab ? 'green' : '#333' },
-                ]}
-              >
+              ]}>
+              <Text style={[styles.tabText, { color: activeTab === tab ? 'green' : '#333' }]}>
                 {tab}
               </Text>
             </TouchableOpacity>
@@ -93,9 +81,7 @@ const SafetySecurityScreen = () => {
       </View>
 
       <View style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.bodyContainer}>
-          {renderTabContent()}
-        </ScrollView>
+        <ScrollView contentContainerStyle={styles.bodyContainer}>{renderTabContent()}</ScrollView>
       </View>
     </View>
   );

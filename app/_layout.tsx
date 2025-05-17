@@ -14,7 +14,6 @@ import Toast from 'react-native-toast-message';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
 // Create a client
 const queryClient = new QueryClient();
 

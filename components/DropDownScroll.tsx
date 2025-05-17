@@ -28,7 +28,10 @@ const DropDownScroll: React.FC<Props> = ({ label, options, value, onSelect }) =>
       </TouchableOpacity>
 
       <Modal transparent visible={visible} animationType="fade">
-        <TouchableOpacity style={styles.modalOverlay} onPress={() => setVisible(false)} activeOpacity={1}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setVisible(false)}
+          activeOpacity={1}>
           <View style={[styles.modalContent, { maxHeight }]}>
             <ScrollView>
               {options.map((option) => (
@@ -38,8 +41,7 @@ const DropDownScroll: React.FC<Props> = ({ label, options, value, onSelect }) =>
                   onPress={() => {
                     onSelect(option);
                     setVisible(false);
-                  }}
-                >
+                  }}>
                   <Text>{option}</Text>
                 </TouchableOpacity>
               ))}

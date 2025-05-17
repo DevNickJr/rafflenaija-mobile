@@ -33,6 +33,7 @@ export default function Login() {
 
   const loginMutation = useMutate<IUserLogin, any>(apiLogin, {
     onSuccess: (data: IResponseData<ILoginResponse>) => {
+      console.log({ data });
       signIn({
         ...data?.data?.user,
         access_token: data?.data?.access_token,
@@ -48,6 +49,11 @@ export default function Login() {
       return router.push('/');
     },
     onError(error) {
+      console.log({
+        error: JSON.stringify(error),
+        mess: error?.response?.data?.message,
+        leies: error?.response?.data?.message?.[0],
+      });
       if (typeof error?.response?.data?.message === 'string') {
         if (error?.response?.data?.message === 'Please verify your account') {
           Toast.show({
@@ -63,7 +69,7 @@ export default function Login() {
       } else {
         Toast.show({
           type: 'error',
-          text1: error?.response?.data?.message[0] || 'An Error Occurred!',
+          text1: error?.response?.data?.message?.[0] || 'An Error Occurred!',
         });
       }
     },
@@ -85,7 +91,27 @@ export default function Login() {
       });
       return;
     }
+
     loginMutation.mutate(user);
+    // fetch('https://api.rafflenaija.com/api/auth/login/', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify(user),
+    // }).then((response) => response.json())
+    //   .then((data) => {
+    //     console.log({ data });
+    //     if (data?.status === 'success') {
+    //       signIn({
+    //         ...data?.data?.user,
+    //         access_token: data?.data?.access_token,
+    //         refresh_token: data?.data?.refresh_token,
+    //       });
+    //     }
+    //   }).catch((error) => {
+    //     console.log({ error: JSON.stringify(error) });
+    //   });
   };
 
   // useEffect(() => {

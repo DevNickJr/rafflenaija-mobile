@@ -37,7 +37,7 @@ const AccountInfoScreen = () => {
   const handleSave = () => {
     console.log('Form Data:', userInfo);
     Alert.alert('Saved', 'Form data logged to console.');
-    router.back()
+    router.back();
   };
 
   const toggleGenderDropdown = () => {
@@ -64,11 +64,12 @@ const AccountInfoScreen = () => {
 
       <View style={styles.emailContainer}>
         <View style={{ flex: 1 }}>
-          <TextInputField 
-            label="Email Address" 
-            value={userInfo.email} editable={true}
+          <TextInputField
+            label="Email Address"
+            value={userInfo.email}
+            editable={true}
             onChangeText={(text) => handleChange('email', text)}
-           />
+          />
         </View>
         <Pressable style={styles.verifyButton}>
           <Text style={styles.verifyText}>Verify</Text>
@@ -97,8 +98,7 @@ const AccountInfoScreen = () => {
               <TouchableOpacity
                 key={option}
                 onPress={() => selectGender(option)}
-                style={styles.dropdownItem}
-              >
+                style={styles.dropdownItem}>
                 <Text style={styles.dropdownItemText}>{option}</Text>
               </TouchableOpacity>
             ))}

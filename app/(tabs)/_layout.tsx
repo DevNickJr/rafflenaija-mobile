@@ -19,9 +19,9 @@ export default function TabLayout() {
   }
 
   // Only require authentication within the (app) group's layout as users
-  console.log('here', access_token, is_logged_in);
   // need to be able to access the (auth) group and sign in again.
   if (!access_token || !is_logged_in) {
+    console.log('here', access_token, is_logged_in);
     console.log('Redirecting to login');
     return <Redirect href="/login" />;
   }
@@ -52,8 +52,9 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gamecontroller.fill" color={color} />,
-          
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="gamecontroller.fill" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -61,7 +62,6 @@ export default function TabLayout() {
         options={{
           title: 'Account',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
-          
         }}
       />
     </Tabs>
