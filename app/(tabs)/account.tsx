@@ -1,23 +1,27 @@
 // screens/AccountScreen.tsx
 import React, { ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, ScrollView } from 'react-native';
 import { FontAwesome5, MaterialIcons, Ionicons, Entypo } from '@expo/vector-icons';
 import { useSession } from '@/providers/SessionProvider';
 import { Href, router } from 'expo-router';
 
 type MenuItem = {
   title: string;
-  icon: ReactNode; // because you're passing JSX elements like <FontAwesome5 ... />
+  icon: ReactNode;
   href?: Href;
 };
 
-const menuItems: MenuItem[] = [
+const topMenuItems: MenuItem[] = [
   { title: 'Account Info', icon: <FontAwesome5 name="user" size={20} color="#333" />, href:"/(mainscreens)/AccountInfo" },
   { title: 'Deposit', icon: <FontAwesome5 name="wallet" size={20} color="#333" />, href:"/(mainscreens)/Deposit" },
   { title: 'Withdraw', icon: <FontAwesome5 name="money-bill-wave" size={20} color="#333" />, href:"/(mainscreens)/Withdraw" },
-  { title: 'Games History', icon: <MaterialIcons name="history" size={20} color="#333" /> },
+  { title: 'Games Results', icon: <MaterialIcons name="history" size={20} color="#333" /> , href:"/(mainscreens)/GameResult"},
   { title: 'Transactions', icon: <FontAwesome5 name="receipt" size={20} color="#333" />, href:"/(mainscreens)/Transaction" },
+  { title: 'Referrals', icon: <Ionicons name="people" size={20} color="#333" />, href:"/(mainscreens)/Referral" },
+];
+
+const bottomMenuItems: MenuItem[] = [
   { title: 'Safety & Security', icon: <Ionicons name="shield-checkmark" size={20} color="#333" />, href:"/(mainscreens)/SafetySecurity" },
   { title: 'Log Out', icon: <Entypo name="log-out" size={20} color="#E53935" />, href:"/(auth)/login"},
 ];
@@ -25,33 +29,63 @@ const menuItems: MenuItem[] = [
 const Account = () => {
   const { signOut } = useSession();
 
+  const handlePress = async (item: MenuItem) => {
+    if (item.title === 'Log Out') {
+      signOut();
+      await SecureStore.deleteItemAsync('NAVIGATION_STATE');
+      router.replace("/(auth)/login");
+    } else if (item.href) {
+      router.push(item.href);
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={[styles.container,{paddingTop:Platform.OS==="android"?40:0}]}>
       <View style={styles.profileHeader}>
         <Text style={styles.headerText}>Account</Text>
       </View>
-      <View style={styles.menuContainer}>
-        {menuItems.map((item, idx) => (
-          <TouchableOpacity
-            key={idx}
-            style={[styles.menuItem, idx !== menuItems.length - 1 && styles.menuItemSeparator]}
-            onPress={async() => {
-              if (item.title === 'Log Out' && item.href) {
-                signOut();
-                await SecureStore.deleteItemAsync('NAVIGATION_STATE');
-                router.replace(item.href);
-              }else if(item.href){
-                router.push(item.href)
-              }
-            }}>
-            <View style={styles.iconWrapper}>{item.icon}</View>
-            <Text style={[styles.menuText, item.title === 'Log Out' && { color: '#E53935' }]}>
-              {item.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
+
+      <ScrollView>
+      <View style={styles.contentContainer}>
+        <View style={styles.topMenuContainer}>
+          {topMenuItems.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={styles.menuItem}
+              onPress={() => handlePress(item)}
+            >
+              <View style={styles.iconWrapper}>{item.icon}</View>
+              <Text style={styles.menuText}>{item.title}</Text>
+
+              <View style={{flex:1, alignItems:"flex-end"}}>
+                <MaterialIcons name="arrow-forward-ios" size={24} color="gray" />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.bottomMenuContainer}>
+          {bottomMenuItems.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={[styles.menuItem, idx === 0 && styles.menuItemSeparator]}
+              onPress={() => handlePress(item)}
+            >
+              <View style={styles.iconWrapper}>{item.icon}</View>
+              <Text style={[styles.menuText, item.title === 'Log Out' && { color: '#E53935' }]}>
+                {item.title}
+              </Text>
+
+              <View style={{flex:1, alignItems:"flex-end"}}>
+                <MaterialIcons name="arrow-forward-ios" size={24} color={item.title === 'Log Out'?'#E53935':'gray'} />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </ScrollView>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -61,16 +95,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f4f7f9',
+    // paddingBottom:70
   },
   profileHeader: {
     padding: 20,
-    paddingTop: 40,
-    backgroundColor: '#fff',
+    paddingTop: 20,
+    // backgroundColor: '#fff',
     marginBottom: 10,
   },
   headerText: {
     fontSize: 22,
     fontWeight: 'bold',
+  },
+  contentContainer: {
+    flex: 1,
+    // justifyContent: 'space-between',
+    paddingHorizontal: 15,
+  },
+  topMenuContainer: {
+    height: '80%',
+    justifyContent: 'space-evenly',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    paddingVertical: 20,
+    paddingHorizontal: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+  },
+  bottomMenuContainer: {
+    backgroundColor: '#fff',
+    marginTop: 30,
+    borderRadius: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
   },
   iconWrapper: {
     width: 30,
@@ -82,26 +147,12 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-
-  menuContainer: {
-    marginTop: 20,
-    backgroundColor: '#fff',
-    marginHorizontal: 15,
-    borderRadius: 15,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-  },
-
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
   },
-
   menuItemSeparator: {
     borderBottomColor: '#ccc',
     borderBottomWidth: StyleSheet.hairlineWidth,

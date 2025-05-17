@@ -13,26 +13,33 @@ import {
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { router } from 'expo-router';
 
 const DATA = Array.from({ length: 20 }).map((_, i) => ({
   id: i.toString(),
-  gamePlayed: 'PowerBank',
   gameId: i % 2 === 0 ? 'RN-123460' : 'RN-000123',
+  gamePlayed: 'PowerBank',
+  phoneNumber: '080******32',
   stake: '100 NGN',
+  time:'1 min ago',
   status: i % 2 === 0 ? 'Lost' : 'Won',
+  
 }));
 
 const GameRow = ({ item }: { item: typeof DATA[0] }) => (
-  <View style={[styles.row, item.status === 'Won' ? styles.won : styles.lost]}>
+  <View style={[styles.row, styles.won ]}>
+    <View style={[styles.rowItem,styles.cell]}>
+      <Text style={styles.label}>Game ID</Text>
+      <Text style={styles.value}>{item.gameId}</Text>
+    </View>
+
     <View style={[styles.rowItem,styles.cell]}>
       <Text style={styles.label}>Game Played</Text>
       <Text style={styles.value}>{item.gamePlayed}</Text>
     </View>
 
     <View style={[styles.rowItem,styles.cell]}>
-      <Text style={styles.label}>Game ID</Text>
-      <Text style={styles.value}>{item.gameId}</Text>
+      <Text style={styles.label}>Game Played</Text>
+      <Text style={styles.value}>{item.phoneNumber}</Text>
     </View>
 
     <View style={[styles.rowItem,styles.cell]}>
@@ -45,15 +52,15 @@ const GameRow = ({ item }: { item: typeof DATA[0] }) => (
       <Text style={[styles.value, item.status === 'Lost' ? styles.statusLost : styles.statusWon]}>{item.status}</Text>
     </View>
 
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={[styles.swapButton, item.status === 'Lost' && styles.swapButtonDisabled]}
       disabled={item.status === 'Lost'}>
       <Text style={styles.swapText}>Swap Item</Text>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
   </View>
 );
 
-const Game=()=> {
+const GameResults=()=> {
   const [activeTab, setActiveTab] = useState(0);
   const [page, setPage] = useState(1);
   const [searchTxt, setSearchTxt] = useState("")
@@ -64,7 +71,7 @@ const Game=()=> {
   const pageCount = Math.ceil(DATA.length / itemsPerPage);
   const paginatedData = DATA.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  const Toptabs =["All Games","Finished","On-Going"]
+  // const Toptabs =["All Games","Finished","On-Going"]
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -73,31 +80,10 @@ const Game=()=> {
 
   return (
     <SafeAreaView style={{flex:1, backgroundColor:"#fff"}}>
-      <View style={[styles.container,{paddingTop: Platform.OS==="android"?60:0, paddingBottom: Platform.OS==="android"?0:40}]}>
-        <Text style={styles.header}>Games History</Text>
+      <View style={[styles.container,{paddingTop: Platform.OS==="android"?10:0, paddingBottom: Platform.OS==="android"?0:40}]}>
+        <Text style={styles.header}>Games Result</Text>
 
-        <View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.tabRow}>
-              {
-                Toptabs.map((item,idx)=>(
-                <TouchableOpacity key={idx} onPress={()=>setActiveTab(idx)}>
-                  <Text style={[styles.tabText, (activeTab===idx) && styles.tabActive]}>
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-
-                ))
-              }
-
-              <TouchableOpacity onPress={()=>router.push("/(mainscreens)/GameResult")}>
-                  <Text style={[styles.tabText]}>
-                    Game Result
-                  </Text>
-                </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </View>
+        
 
         <Text style={styles.timestamp}>21/12/2023 10:20pm</Text>
         
@@ -151,7 +137,7 @@ const Game=()=> {
     </SafeAreaView>
   );
 }
-export default Game;
+export default GameResults;
 const styles = StyleSheet.create({
   container: {
     padding: 10,
@@ -215,7 +201,7 @@ const styles = StyleSheet.create({
     minWidth: 150,
     paddingHorizontal: 8,
     fontSize: 14,
-    gap:6,
+    gap:6
   },
   rowItem: {
     marginBottom: 5,

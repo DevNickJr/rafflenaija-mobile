@@ -46,7 +46,7 @@ export default function Login() {
       });
 
       dispatch({ type: 'reset' });
-      return router.push('/');
+      return router.push("/(tabs)/home");
     },
     onError(error) {
       console.log(error)
@@ -119,7 +119,7 @@ export default function Login() {
     });
 
     dispatch({ type: 'reset' });
-    return router.push('/');
+    return router.push("/(tabs)/home");
   }
 
   // useEffect(() => {

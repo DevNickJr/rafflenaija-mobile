@@ -10,6 +10,7 @@ import {
   ListRenderItem,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import UserIdCard from '@/components/UserIdCard';
@@ -202,7 +203,7 @@ const HomeScreen = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android"?20:0 }}>
       <View style={styles.container}>
         <FlatList
           data={codes}
