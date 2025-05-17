@@ -1,6 +1,9 @@
-import { Stack } from 'expo-router';
+import { useSession } from '@/providers/SessionProvider';
+import { Redirect, Stack } from 'expo-router';
 
 export default function AuthLayout() {
+  
+
   return (
     <Stack
       screenOptions={{

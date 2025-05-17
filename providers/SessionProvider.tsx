@@ -151,7 +151,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         is_logged_in: true,
       }),
     );
-    router.push('/home');
+    router.push("/(tabs)/home");
   };
   const signOut = () => {
     dispatch({
@@ -159,7 +159,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       payload: null,
     });
     setSession(null);
-    router.push('/');
+    router.push("/(auth)/login");
   };
 
   return (

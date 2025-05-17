@@ -12,6 +12,7 @@ import React, { useReducer, useState } from 'react';
 import { StatusBar, Text, View, StyleSheet } from 'react-native';
 import Toast from 'react-native-toast-message';
 
+
 const initialState: IUserLogin = {
   phone_number: '',
   password: '',
@@ -46,14 +47,10 @@ export default function Login() {
       });
 
       dispatch({ type: 'reset' });
-      return router.push('/');
+      return router.push("/(tabs)/home");
     },
     onError(error) {
-      console.log({
-        error: JSON.stringify(error),
-        mess: error?.response?.data?.message,
-        leies: error?.response?.data?.message?.[0],
-      });
+      console.log(error)
       if (typeof error?.response?.data?.message === 'string') {
         if (error?.response?.data?.message === 'Please verify your account') {
           Toast.show({
@@ -93,26 +90,39 @@ export default function Login() {
     }
 
     loginMutation.mutate(user);
-    // fetch('https://api.rafflenaija.com/api/auth/login/', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(user),
-    // }).then((response) => response.json())
-    //   .then((data) => {
-    //     console.log({ data });
-    //     if (data?.status === 'success') {
-    //       signIn({
-    //         ...data?.data?.user,
-    //         access_token: data?.data?.access_token,
-    //         refresh_token: data?.data?.refresh_token,
-    //       });
-    //     }
-    //   }).catch((error) => {
-    //     console.log({ error: JSON.stringify(error) });
-    //   });
   };
+
+  
+  const dummyLogin=()=>{
+
+    let myUser ={
+      phone_number: "09012345678",
+      first_name: "John",
+      last_name: "Doe",
+      email: "john.doe@example.com",
+      is_verified: true,
+      dob: "1990-01-01",
+      gender: "Male",
+      profile_picture: "https://farm4.staticflickr.com/3075/3168662394_7d7103de7d_z_d.jpg",
+      created_at: "2023-01-01T00:00:00Z",
+    }
+
+
+
+    signIn({
+      ...myUser,
+      access_token: "dummy-access-token-123",
+      refresh_token: "dummy-refresh-token-456",
+      wallet_balance: "5000.00",
+    });
+    Toast.show({
+      type: 'success',
+      text1: 'Logged in',
+    });
+
+    dispatch({ type: 'reset' });
+    return router.push("/(tabs)/home");
+  }
 
   // useEffect(() => {
   //   if (loginMutation.isSuccess) {
@@ -156,7 +166,8 @@ export default function Login() {
           <AuthLink label="Forgot Password?" onPress={() => router.navigate('/(auth)/phone')} />
         </View>
 
-        <AuthButton title="Login" onPress={() => login(user)} />
+        <AuthButton title="Login" onPress={() => dummyLogin()} />
+        {/* <AuthButton title="Login" onPress={() => login(user)} /> */}
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>Don’t have an Account?</Text>
