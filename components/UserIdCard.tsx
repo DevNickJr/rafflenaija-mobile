@@ -1,27 +1,34 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import React, { useState } from 'react';
 import { Ionicons as Icon } from '@expo/vector-icons'; // Make sure to install this
+import { useSession } from '@/providers/SessionProvider';
 
 const UserIdCard = () => {
-  const [showBalance, setShowBalance] = useState(true);
+  const context = useSession()
+
+  const [showBalance, setShowBalance] = useState(false);
 
   const toggleBalance = () => {
-    setShowBalance(!showBalance);
+    
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.userImg} />
-
+      <Image  style={styles.userImg} src={context?.profile_picture || ''} />
       <View>
-        <Text style={styles.txtStyle}>08082332823</Text>
+        <Text style={styles.txtStyle}>{context?.phone_number}</Text>
 
         <View style={styles.balanceContainer}>
           <Text style={[styles.txtStyle, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
-            {showBalance ? 'NGN 2,800,400.00' : '****'}
+            {showBalance ? 
+            <>
+            NGN {context?.wallet_balance}
+            </>
+            : 
+            '****'}
           </Text>
 
-          <TouchableOpacity onPress={toggleBalance}>
+          <TouchableOpacity onPress={() => setShowBalance(prev => !prev)}>
             <Icon name={showBalance ? 'eye' : 'eye-off'} size={16} color="#000" />
           </TouchableOpacity>
         </View>
@@ -36,7 +43,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     // backgroundColor: 'gray',
     padding: 8,
   },
@@ -48,12 +55,13 @@ const styles = StyleSheet.create({
   },
   txtStyle: {
     fontSize: 12,
-    width: 100,
+    // width: 100,
   },
   balanceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginTop: 2,
+    minWidth: 62,
   },
 });

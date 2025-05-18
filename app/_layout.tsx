@@ -58,7 +58,12 @@ export default function RootLayout() {
           </Stack>
         </SessionProvider>
         <StatusBar style="auto" />
-        <Toast />
+        <Toast
+          topOffset={30}
+          position="bottom"
+          visibilityTime={1500}
+          autoHide
+        />
       </ThemeProvider>
       {/* <StatusBar style="auto" /> */}
     </QueryClientProvider>
