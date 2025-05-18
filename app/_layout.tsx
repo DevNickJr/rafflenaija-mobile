@@ -47,7 +47,8 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* your navigators or screens */}
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={DefaultTheme}>
+      {/* <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}> */}
         <SessionProvider>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -57,10 +58,9 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" />
           </Stack>
         </SessionProvider>
-        <StatusBar style="auto" />
+        {/* <StatusBar style="auto" /> */}
         <Toast
           topOffset={30}
-          position="bottom"
           visibilityTime={1500}
           autoHide
         />

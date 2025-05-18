@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
+import { Stack } from 'expo-router';
 const transactions = [
   {
     time: '21/12/2023 10:20pm',
@@ -130,95 +131,102 @@ const Transaction = () => {
     };
   
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={{flex:1, paddingHorizontal:10}}>
-        {/* Filter Buttons + Date Picker */}
-        <View style={styles.topBar}>
-          {['All', 'Deposit', 'Withdrawal', 'Game'].map(type => (
+      <>
+        <Stack.Screen
+          options={{
+            title: 'Referrals',
+          }}
+        />
+        {/* <SafeAreaView style={styles.container}> */}
+          <View style={{flex:1, paddingHorizontal:10}}>
+          {/* Filter Buttons + Date Picker */}
+          <View style={styles.topBar}>
+            {['All', 'Deposit', 'Withdrawal', 'Game'].map(type => (
+              <TouchableOpacity
+                key={type}
+                onPress={() => {
+                  setFilter(type as any);
+                  setCurrentPage(1);
+                }}
+                style={[
+                  styles.filterBtn,
+                  filter === type && styles.activeFilterBtn,
+                ]}
+              >
+                <Text style={[
+                  styles.filterBtnText,
+                  filter === type && { color: 'green' }
+                ]}>
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+    
             <TouchableOpacity
-              key={type}
-              onPress={() => {
-                setFilter(type as any);
-                setCurrentPage(1);
-              }}
-              style={[
-                styles.filterBtn,
-                filter === type && styles.activeFilterBtn,
-              ]}
+              onPress={() => setShowDatePicker(true)}
+              style={styles.datePickerBtn}
             >
-              <Text style={[
-                styles.filterBtnText,
-                filter === type && { color: 'green' }
-              ]}>
-                {type}
+              <Text style={styles.filterBtnText}>
+                {date.toISOString().split('T')[0]}
               </Text>
             </TouchableOpacity>
-          ))}
-  
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={styles.datePickerBtn}
-          >
-            <Text style={styles.filterBtnText}>
-              {date.toISOString().split('T')[0]}
-            </Text>
-          </TouchableOpacity>
-        </View>
-  
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-            onChange={handleDateChange}
-          />
-        )}
-  
-        {/* Transaction Table */}
-        <ScrollView horizontal>
-          <View>
-            <View style={[styles.row, styles.header]}>
-              <Text style={[styles.cell, styles.headerCell]}>Time</Text>
-              <Text style={[styles.cell, styles.headerCell]}>Transaction Type</Text>
-              <Text style={[styles.cell, styles.headerCell]}>Transaction ID</Text>
-              <Text style={[styles.cell, styles.headerCell]}>Amount</Text>
-              <Text style={[styles.cell, styles.headerCell]}>Status</Text>
-              <Text style={[styles.cell, styles.headerCell]}>Details</Text>
-            </View>
-            <ScrollView>
-              {paginated.map((item, index) => (
-                <View key={index} style={styles.row}>
-                  <Text style={styles.cell}>{item.time}</Text>
-                  <Text style={styles.cell}>{item.type}</Text>
-                  <Text style={styles.cell}>{item.id}</Text>
-                  <Text style={styles.cell}>{item.amount}</Text>
-                  <Text style={[styles.cell, getStatusStyle(item.status)]}>
-                    {item.status}
-                  </Text>
-                  <TouchableOpacity style={styles.cell}>
-                    <Text style={{ color: 'green' }}>Details</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
           </View>
-        </ScrollView>
-  
-        {/* Pagination */}
-        <Pagination
-          totalItems={(sampleData.length-1)}
-          pageSize={10}
-        //   totalPages={Math.ceil(filtered.length / itemsPerPage)}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          activeBtnStyle={{backgroundColor:'red', borderWidth:0, borderRadius:4}}
-          activeTextStyle={{color:"#fff"}}
-          btnStyle={{backgroundColor:"trasparent"}}
-          textStyle={{color:"black"}}
-          
-        />
-        </View>
-      </SafeAreaView>
+    
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'inline' : 'default'}
+              onChange={handleDateChange}
+            />
+          )}
+    
+          {/* Transaction Table */}
+          <ScrollView horizontal>
+            <View>
+              <View style={[styles.row, styles.header]}>
+                <Text style={[styles.cell, styles.headerCell]}>Time</Text>
+                <Text style={[styles.cell, styles.headerCell]}>Transaction Type</Text>
+                <Text style={[styles.cell, styles.headerCell]}>Transaction ID</Text>
+                <Text style={[styles.cell, styles.headerCell]}>Amount</Text>
+                <Text style={[styles.cell, styles.headerCell]}>Status</Text>
+                <Text style={[styles.cell, styles.headerCell]}>Details</Text>
+              </View>
+              <ScrollView>
+                {paginated.map((item, index) => (
+                  <View key={index} style={styles.row}>
+                    <Text style={styles.cell}>{item.time}</Text>
+                    <Text style={styles.cell}>{item.type}</Text>
+                    <Text style={styles.cell}>{item.id}</Text>
+                    <Text style={styles.cell}>{item.amount}</Text>
+                    <Text style={[styles.cell, getStatusStyle(item.status)]}>
+                      {item.status}
+                    </Text>
+                    <TouchableOpacity style={styles.cell}>
+                      <Text style={{ color: 'green' }}>Details</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </ScrollView>
+    
+          {/* Pagination */}
+          <Pagination
+            totalItems={(sampleData.length-1)}
+            pageSize={10}
+          //   totalPages={Math.ceil(filtered.length / itemsPerPage)}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            activeBtnStyle={{backgroundColor:'red', borderWidth:0, borderRadius:4}}
+            activeTextStyle={{color:"#fff"}}
+            btnStyle={{backgroundColor:"trasparent"}}
+            textStyle={{color:"black"}}
+            
+          />
+          </View>
+        {/* </SafeAreaView> */}
+      </>
     );
   };
   
@@ -228,7 +236,7 @@ export default Transaction;
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal:10,
+      paddingHorizontal:20,
       backgroundColor:"#fff"
     },
 

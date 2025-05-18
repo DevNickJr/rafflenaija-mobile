@@ -91,9 +91,10 @@ const HomeScreen = () => {
 
   // Auto-slide logic
   useEffect(() => {
+    if (!banners?.data?.length) return;
     const interval = setInterval(() => {
       setActiveDot((prev) => {
-        const next = (prev + 1) % (banners?.data?.length || 0);
+        const next = (prev + 1) % (banners?.data?.length || 1);
         bannerRef.current?.scrollToIndex({ index: next, animated: true });
         return next;
       });

@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, Scrol
 import { FontAwesome5, MaterialIcons, Ionicons, Entypo } from '@expo/vector-icons';
 import { useSession } from '@/providers/SessionProvider';
 import { Href, router } from 'expo-router';
+import { SafeView } from '@/components/SafeView';
 
 type MenuItem = {
   title: string;
@@ -39,8 +40,9 @@ const Account = () => {
     }
   };
 
+  // <SafeAreaView style={[styles.container,{paddingTop:Platform.OS==="android"?40:0}]}>
   return (
-    <SafeAreaView style={[styles.container,{paddingTop:Platform.OS==="android"?40:0}]}>
+    <SafeView>
       <View style={styles.profileHeader}>
         <Text style={styles.headerText}>Account</Text>
       </View>
@@ -85,7 +87,7 @@ const Account = () => {
       </View>
 
       </ScrollView>
-    </SafeAreaView>
+    </SafeView>
   );
 };
 
@@ -94,6 +96,7 @@ export default Account;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexGrow: 1,
     backgroundColor: '#f4f7f9',
     // paddingBottom:70
   },

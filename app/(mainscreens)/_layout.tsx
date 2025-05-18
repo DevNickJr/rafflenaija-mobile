@@ -1,4 +1,5 @@
 import BackButton from '@/components/BackButton';
+import { SafeView } from '@/components/SafeView';
 import { useSession } from '@/providers/SessionProvider';
 import { Redirect, Stack } from 'expo-router';
 
@@ -29,13 +30,19 @@ export default function MainLayout() {
       // }
   
   return (
-    <Stack
-      screenOptions={{
-        headerBackVisible: false,
-        headerLeft: () => <BackButton />,
-        headerTitleAlign: 'center',
-        // headerShown: false, // No header for auth screens (cleaner)
-      }}
-    />
+    <SafeView>
+      <Stack
+        screenOptions={{
+          // headerBackVisible: false,
+          // headerLeft: () => <BackButton label='aa' />,
+          // headerTitleAlign: 'center',
+          // headerStyle: {
+          //   backgroundColor: 'transparent',
+          // },
+          // headerTransparent: true,
+          // headerShown: false, // No header for auth screens (cleaner)
+        }}
+      />
+    </SafeView>
   );
 }

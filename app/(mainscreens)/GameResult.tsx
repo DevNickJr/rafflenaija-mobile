@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Stack } from 'expo-router';
 
 const DATA = Array.from({ length: 20 }).map((_, i) => ({
   id: i.toString(),
@@ -79,9 +80,15 @@ const GameResults=()=> {
   };
 
   return (
-    <SafeAreaView style={{flex:1, backgroundColor:"#fff"}}>
+    <>
+    <Stack.Screen
+      options={{
+        title: 'Game Results',
+      }}
+    />
+    {/* <SafeAreaView style={{flex:1, backgroundColor:"#fff"}}> */}
       <View style={[styles.container,{paddingTop: Platform.OS==="android"?10:0, paddingBottom: Platform.OS==="android"?0:40}]}>
-        <Text style={styles.header}>Games Result</Text>
+        {/* <Text style={styles.header}>Games Result</Text> */}
 
         
 
@@ -134,14 +141,15 @@ const GameResults=()=> {
           textStyle={{color:"black"}}
         />
       </View>
-    </SafeAreaView>
+    {/* </SafeAreaView> */}
+    </>
   );
 }
 export default GameResults;
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
-    paddingHorizontal:20,
+    padding: 20,
+    // paddingHorizontal:20,
     flex: 1,
     backgroundColor: '#fff',
   },

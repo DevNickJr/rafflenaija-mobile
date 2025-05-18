@@ -13,6 +13,7 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import * as Clipboard from 'expo-clipboard';
+import { Stack } from 'expo-router';
 
 const Deposit = () => {
   const [activeTab, setActiveTab] = useState<'BANK' | 'TRANSFER'>('BANK');
@@ -44,80 +45,87 @@ const Deposit = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Deposit</Text>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Deposit',
+        }}
+      />
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* <Text style={styles.title}>Deposit</Text> */}
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity onPress={() => setActiveTab('BANK')}>
-          <Text style={[styles.tab, activeTab === 'BANK' && styles.activeTab]}>Bank Transfers</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity onPress={() => setActiveTab('BANK')}>
+            <Text style={[styles.tab, activeTab === 'BANK' && styles.activeTab]}>Bank Transfers</Text>
+          </TouchableOpacity>
+        </View>
 
-      {activeTab === 'BANK' && (
-        <View>
-          {!inProgress ? (
-            <View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Amount (NGN)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  placeholder="Enter min 100"
-                  value={amount > 0 ? amount.toString() : ''}
-                  onChangeText={(text) => setAmount(Number(text))}
-                />
+        {activeTab === 'BANK' && (
+          <View>
+            {!inProgress ? (
+              <View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Amount (NGN)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    placeholder="Enter min 100"
+                    value={amount > 0 ? amount.toString() : ''}
+                    onChangeText={(text) => setAmount(Number(text))}
+                  />
+                </View>
+                <TouchableOpacity style={styles.button} onPress={handlePayment}>
+                  <Text style={styles.buttonText}>Fund Wallet</Text>
+                </TouchableOpacity>
+
+                <View style={styles.noteContainer}>
+                  <Text style={styles.noteTitle}>NOTE</Text>
+                  <Text style={styles.note}>
+                    • We do not share your payment information. It is used for transaction
+                    verification only.
+                  </Text>
+                  <Text style={styles.note}>
+                    • If you have any issues, please contact customer service.
+                  </Text>
+                  <Text style={styles.note}>• Minimum deposit amount is NGN 100.00.</Text>
+                  <Text style={styles.note}>• Maximum per transaction is NGN 9,999,999.00.</Text>
+                </View>
               </View>
-              <TouchableOpacity style={styles.button} onPress={handlePayment}>
-                <Text style={styles.buttonText}>Fund Wallet</Text>
-              </TouchableOpacity>
-
-              <View style={styles.noteContainer}>
-                <Text style={styles.noteTitle}>NOTE</Text>
-                <Text style={styles.note}>
-                  • We do not share your payment information. It is used for transaction
-                  verification only.
+            ) : (
+              <View style={styles.paymentInfo}>
+                <Text style={styles.sectionTitle}>
+                  Send ₦{amount} from your bank to the account details below
                 </Text>
-                <Text style={styles.note}>
-                  • If you have any issues, please contact customer service.
+                <View style={styles.infoItem}>
+                  <Text>Bank Name</Text>
+                  <Text style={styles.bold}>Example Bank</Text>
+                </View>
+                <View style={styles.infoItem}>
+                  <Text>Account Number</Text>
+                  <TouchableOpacity
+                    onPress={() => handleCopy('1234567890')}
+                    style={styles.copyContainer}>
+                    <Text style={styles.bold}>1234567890</Text>
+                    <MaterialCommunityIcons name="content-copy" size={18} color="#000" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.infoItem}>
+                  <Text>Account Name</Text>
+                  <Text style={styles.bold}>Raffle Naija</Text>
+                </View>
+                <Text style={styles.warning}>
+                  Note: Please do not transfer money into this account more than once. Transaction
+                  expires in 30mins.
                 </Text>
-                <Text style={styles.note}>• Minimum deposit amount is NGN 100.00.</Text>
-                <Text style={styles.note}>• Maximum per transaction is NGN 9,999,999.00.</Text>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.paymentInfo}>
-              <Text style={styles.sectionTitle}>
-                Send ₦{amount} from your bank to the account details below
-              </Text>
-              <View style={styles.infoItem}>
-                <Text>Bank Name</Text>
-                <Text style={styles.bold}>Example Bank</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text>Account Number</Text>
-                <TouchableOpacity
-                  onPress={() => handleCopy('1234567890')}
-                  style={styles.copyContainer}>
-                  <Text style={styles.bold}>1234567890</Text>
-                  <MaterialCommunityIcons name="content-copy" size={18} color="#000" />
+                <TouchableOpacity style={styles.button} onPress={handlePaid}>
+                  <Text style={styles.buttonText}>I have made payment</Text>
                 </TouchableOpacity>
               </View>
-              <View style={styles.infoItem}>
-                <Text>Account Name</Text>
-                <Text style={styles.bold}>Raffle Naija</Text>
-              </View>
-              <Text style={styles.warning}>
-                Note: Please do not transfer money into this account more than once. Transaction
-                expires in 30mins.
-              </Text>
-              <TouchableOpacity style={styles.button} onPress={handlePaid}>
-                <Text style={styles.buttonText}>I have made payment</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      )}
-    </ScrollView>
+            )}
+          </View>
+        )}
+      </ScrollView>
+    </>
   );
 };
 
@@ -125,8 +133,9 @@ export default Deposit;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 20,
     backgroundColor: '#fff',
+    flex: 1,
   },
   title: {
     fontSize: 24,

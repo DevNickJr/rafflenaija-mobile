@@ -17,6 +17,7 @@ import {
   Alert,
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
+import { Stack } from 'expo-router';
 
 const tableData = Array(20).fill({
   user: 'David William',
@@ -60,94 +61,101 @@ const ReferralScreen = () => {
       }
     };
   return (
-    <View style={{flex:1}}>
-      <ScrollView style={styles.container}>
-        {/* Header */}
-        <Text style={styles.header}>Referral</Text>
-        <Text style={styles.tooltip}>
-          You get NGN500 when a user registers with your link and the registered user deposits above NGN1000.
-        </Text>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Referrals',
+        }}
+      />
+      <View style={{flex:1}}>
+        <ScrollView style={styles.container}>
+          {/* Header */}
+          {/* <Text style={styles.header}>Referral</Text> */}
+          <Text style={styles.tooltip}>
+            You get NGN500 when a user registers with your link and the registered user deposits above NGN1000.
+          </Text>
 
-        {/* Referral Code */}
-        <View style={styles.referralCodeContainer}>
-          <TextInput
-            style={styles.input}
-            value={linkText}
-            editable={false}
-          />
-          <TouchableOpacity style={styles.copyButton} onPress={()=>handleCopy(linkText)} >
-            <Text style={styles.copyText}>Copy Code</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Summary Section */}
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryBox}>
-            <Text style={styles.summaryLabel}>Total Referral</Text>
-            <Text style={styles.summaryValue}>200</Text>
+          {/* Referral Code */}
+          <View style={styles.referralCodeContainer}>
+            <TextInput
+              style={styles.input}
+              value={linkText}
+              editable={false}
+            />
+            <TouchableOpacity style={styles.copyButton} onPress={()=>handleCopy(linkText)} >
+              <Text style={styles.copyText}>Copy Code</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.summaryBox}>
-            <Text style={styles.summaryLabel}>Amount Earned</Text>
-            <Text style={styles.summaryValue}>₦ 2,000</Text>
-          </View>
-        </View>
 
-        {/* Withdraw Button */}
-        <TouchableOpacity style={styles.withdrawButton} onPress={()=>setIsVisible(true)}>
-          <Text style={styles.withdrawText}>Withdraw Amount Earned</Text>
-        </TouchableOpacity>
-
-        {/* Table */}
-        <ScrollView horizontal>
-          <View>
-            {/* Table Header */}
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              <Text style={styles.tableHeaderText}>Referred User</Text>
-              <Text style={styles.tableHeaderText}>Date Referred</Text>
-              <Text style={styles.tableHeaderText}>Status</Text>
-              <Text style={styles.tableHeaderText}>Referred Amount</Text>
-              <Text style={styles.tableHeaderText}>Action</Text>
+          {/* Summary Section */}
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryLabel}>Total Referral</Text>
+              <Text style={styles.summaryValue}>200</Text>
             </View>
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryLabel}>Amount Earned</Text>
+              <Text style={styles.summaryValue}>₦ 2,000</Text>
+            </View>
+          </View>
 
-            {/* Table Body */}
-            {paginatedData.map((item, index) => (
-              <View key={index} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{item.user}</Text>
-                <Text style={styles.tableCell}>{item.date}</Text>
-                <Text style={[styles.tableCell, item.status === 'Success' ? styles.success : styles.pending]}>
-                  {item.status}
-                </Text>
-                <Text style={styles.tableCell}>{item.amount}</Text>
-                <TouchableOpacity>
-                  <Text style={[styles.tableCell, styles.claimButton]}>{item.action}</Text>
-                </TouchableOpacity>
+          {/* Withdraw Button */}
+          <TouchableOpacity style={styles.withdrawButton} onPress={()=>setIsVisible(true)}>
+            <Text style={styles.withdrawText}>Withdraw Amount Earned</Text>
+          </TouchableOpacity>
+
+          {/* Table */}
+          <ScrollView horizontal>
+            <View>
+              {/* Table Header */}
+              <View style={[styles.tableRow, styles.tableHeader]}>
+                <Text style={styles.tableHeaderText}>Referred User</Text>
+                <Text style={styles.tableHeaderText}>Date Referred</Text>
+                <Text style={styles.tableHeaderText}>Status</Text>
+                <Text style={styles.tableHeaderText}>Referred Amount</Text>
+                <Text style={styles.tableHeaderText}>Action</Text>
               </View>
-            ))}
+
+              {/* Table Body */}
+              {paginatedData.map((item, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>{item.user}</Text>
+                  <Text style={styles.tableCell}>{item.date}</Text>
+                  <Text style={[styles.tableCell, item.status === 'Success' ? styles.success : styles.pending]}>
+                    {item.status}
+                  </Text>
+                  <Text style={styles.tableCell}>{item.amount}</Text>
+                  <TouchableOpacity>
+                    <Text style={[styles.tableCell, styles.claimButton]}>{item.action}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+
+          {/* Pagination */}
+          <View style={styles.pagination}>
+            {/* {[1, 2, 3, 4, 5, 6].map((page, idx) => (
+              <TouchableOpacity key={idx} style={[styles.pageButton, page === 1 && styles.activePage]}>
+                <Text style={page === 1 ? styles.activePageText : styles.pageText}>{page}</Text>
+              </TouchableOpacity>
+            ))} */}
+            <Pagination
+              totalItems={pageCount * 8}
+              pageSize={8}
+              currentPage={page}
+              onPageChange={setPage}
+              activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
+              activeTextStyle={{color:"#fff"}}
+              btnStyle={{backgroundColor:"trasparent"}}
+              textStyle={{color:"black"}}
+            />
           </View>
         </ScrollView>
 
-        {/* Pagination */}
-        <View style={styles.pagination}>
-          {/* {[1, 2, 3, 4, 5, 6].map((page, idx) => (
-            <TouchableOpacity key={idx} style={[styles.pageButton, page === 1 && styles.activePage]}>
-              <Text style={page === 1 ? styles.activePageText : styles.pageText}>{page}</Text>
-            </TouchableOpacity>
-          ))} */}
-          <Pagination
-            totalItems={pageCount * 8}
-            pageSize={8}
-            currentPage={page}
-            onPageChange={setPage}
-            activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
-            activeTextStyle={{color:"#fff"}}
-            btnStyle={{backgroundColor:"trasparent"}}
-            textStyle={{color:"black"}}
-          />
-        </View>
-      </ScrollView>
-
-      <RefferalModalV2 visible={isVisible} onClose={()=>setIsVisible(false)}/>
-    </View>
+        <RefferalModalV2 visible={isVisible} onClose={()=>setIsVisible(false)}/>
+      </View>
+    </>
   );
 };
 
@@ -158,7 +166,7 @@ const screenWidth = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 20,
     backgroundColor: '#fff',
   },
   header: {

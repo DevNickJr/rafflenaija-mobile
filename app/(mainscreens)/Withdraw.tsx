@@ -10,7 +10,7 @@ import {
   FlatList,
   ScrollView,
 } from 'react-native';
-import { IAddBank, IAddBankAction, IBank, IBankAccount } from '@/interfaces'; // Adjust your path
+import { IAddBank, IAddBankAction, IBank, IBankAccount, IDelete, IResponseData, IUser, IVerifyBank, IVerifyBankResponse, IWithdraw } from '@/interfaces'; // Adjust your path
 //import { IAddBank } from '@/interfaces';
 import Dropdown from '@/components/Dropdown'; // Assuming you have this
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,13 @@ import { Colors } from '@/constants/Colors';
 import { dummyBanks, dummyAccounts } from '@/constants/dummyBanks';
 import DropDownScroll from '@/components/DropDownScroll';
 import TransferToFriend from './friendcomponent/TransferToFriend';
+import { Stack } from 'expo-router';
+import useFetch from '@/hooks/useFetch';
+import { apiAddBankAccount, apiDeleteBankAccount, apiGetSupportedBanks, apiGetUserBankAccounts, apiVerifyBankAccount, apiWithdraw } from '@/services/WalletService';
+import useMutate from '@/hooks/useMutation';
+import Toast from 'react-native-toast-message';
+import { apiGetUser } from '@/services/AuthService';
+import { useSession } from '@/providers/SessionProvider';
 // Dummy image in place of Logo
 const Logo = require('../../assets/images/homelogo.png');
 
@@ -64,193 +71,284 @@ const initialState: IAddBank = {
 const Withdraw = () => {
   const [activeTab, setActiveTab] = useState<'BANK' | 'TRANSFER'>('BANK');
   const [transferTab, setTransferTab] = useState(0);
-  const [accounts, setAccounts] = useState<IBankAccount[]>([]);
-  const [banks, setBanks] = useState<IBank[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currAccount, setCurrAccount] = useState('');
-  const [amount, setAmount] = useState<number>();
+  const [currAccount, setCurrAccount] = useState('new');
+  const [amount, setAmount] = useState(0)
 
-  const [selectedBank, setSelectedBank] = useState<string>('');
+  const { access_token, wallet_balance , dispatch: authStateDispatch } = useSession();
+
+  // const [selectedBank, setSelectedBank] = useState<string>('');
 
   const [addBank, dispatch] = useReducer((state: IAddBank, action: IAddBankAction) => {
     if (action.type === 'reset') return initialState;
     return { ...state, [action.type]: action.payload };
   }, initialState);
 
-  useEffect(() => {
-    // Simulate API fetch
-    setLoading(true);
-    setTimeout(() => {
-      setBanks(dummyBanks);
-      setAccounts(dummyAccounts);
-      setLoading(false);
-    }, 500);
-  }, []);
 
-  const noAccount = useMemo(() => accounts.length === 0, [accounts]);
+
+  const [deleteAccountId, setDeleteAccountId] = useState('')
+  
+  const { data: accounts, refetch, isLoading } = useFetch<IResponseData<IBankAccount[]>>({
+      api: apiGetUserBankAccounts,
+      key: ["bank-accounts"],
+      requireAuth: true
+  })
+
+  const { data: banks } = useFetch<IResponseData<IBank[]>>({
+      api: apiGetSupportedBanks,
+      key: ["banks"],
+      requireAuth: true
+  })
+
+
+  const addBankMutation = useMutate<IAddBank, any>(
+      apiAddBankAccount,
+      {
+        onSuccess: (data: IResponseData<"">) => {
+            console.log("data", data)
+            dispatch({ type: "reset", payload: '' })
+            setCurrAccount("")
+            Toast.show({
+                type: "success",
+                text1: data.message || "Account Added Successfully"
+            })
+            refetch()
+            return
+        },
+        showErrorMessage: true,
+      }
+  )
+
+  const verifyBankMutation = useMutate<IVerifyBank, IResponseData<IVerifyBankResponse>>(
+      apiVerifyBankAccount,
+      {
+        onSuccess: (data: IResponseData<"">) => {
+            console.log("data", data)
+            Toast.show({
+                type: "success",
+                text1: data.message || "Account Verified Successfully"
+            })
+            return
+        },
+        showErrorMessage: true,
+      }
+  )
+
+  const deleteBankMutation = useMutate<IDelete, IResponseData<"">>(
+      apiDeleteBankAccount,
+      {
+        onSuccess: (data: IResponseData<"">) => {
+            console.log("data", data)
+            Toast.show({
+                type: "success",
+                text1: data.message || "Account Deleted Successfully"
+            })
+            refetch()
+            setDeleteAccountId("")
+            return
+        },
+        showErrorMessage: true,
+      }
+  )
+
+  const withdrawMutation = useMutate<IWithdraw, IResponseData<"">>(
+      apiWithdraw,
+      {
+        onSuccess: (data: IResponseData<"">) => {
+            console.log("data", data)
+            setAmount(0)
+            Toast.show({
+                type: "success",
+                text1: data.message || "Withdrawal is being processed"
+            })
+            refetchUser()
+          //   toast.success(data.message || "Operation Successful")
+            return
+        },
+        showErrorMessage: true,
+      }
+  )
+
+  const { data: userData, refetch: refetchUser } = useFetch<IResponseData<IUser>>({
+      api: apiGetUser,
+      key: ["user"],
+      requireAuth: true,
+      enabled: !!access_token,
+      showMessage: false
+  })
+
+  useEffect(() => {
+      if (userData?.data?.wallet_balance && (wallet_balance != userData?.data?.wallet_balance)) {
+          authStateDispatch({ type: "UPDATE", payload: {
+              wallet_balance: Number(userData?.data?.wallet_balance) || wallet_balance || 0,
+          }})
+      }
+  },[userData?.data?.wallet_balance, wallet_balance, authStateDispatch])
+
+  const noAccount = useMemo(() => (accounts?.data && accounts?.data?.length > 0) ? false : true, [accounts])
 
   const handleAccountNumber = (val: string) => {
-    if (val.length > 10) return alert('Account number must be 10 digits');
-    if (val.length === 10) {
-      // Simulate verify
-      console.log('Verifying bank account...');
-    }
-    dispatch({ type: 'account_number', payload: val });
-  };
-
-  //   const handleSelectBank = (val: string) => {
-  //     dispatch({ type: 'bank_code', payload: val });
-  //     const bank = banks.find((b) => b.code === val);
-  //     dispatch({ type: 'bank_name', payload: bank?.name || '' });
-  //   };
+      if (val.length > 10) {
+        Toast.show({
+            type: "info",
+            text1: "Account Number must be 10 digits"
+        })
+        return
+      }
+      if (val.length === 10) {
+          verifyBankMutation.mutate({
+              account_number: val,
+              bank_code: addBank.bank_code,
+          })
+      }
+      dispatch({ type: "account_number", payload: val })
+  }
 
   const handleSelectBank = (val: string) => {
-    setSelectedBank(val);
-    // Additional logic here if needed
-  };
-
-  const addUserBank = () => {
-    if (!selectedBank || addBank.account_number.length !== 10) {
-      return alert('Please select a bank and enter a valid 10-digit account number');
-    }
-
-    setLoading(true);
-
-    setTimeout(() => {
-      const bank = banks.find((b) => b.name === selectedBank);
-      if (!bank) return alert('Bank not found');
-
-      const newAccount: IBankAccount = {
-        id: (accounts.length + 1).toString(),
-        account_name: 'Simulated Name', // Replace with actual verified name if needed
-        account_number: addBank.account_number,
-        bank_code: bank.code,
-        bank_name: bank.name,
-        is_default: false,
-        recipient_code: `${bank.slug}_${addBank.account_number}`, // Simulated recipient code
-      };
-
-      setAccounts((prev) => [...prev, newAccount]);
-      setBanks((prev) => prev.filter((b) => b.code !== bank.code));
-      setSelectedBank('');
-      // dispatch({ type: 'reset' });
-      setCurrAccount('');
-      setLoading(false);
-    }, 1000);
-  };
+    const bank = banks?.data?.find(bank => bank.name === val)
+    dispatch({ type: "bank_code", payload: bank?.code || '' })
+    dispatch({ type: "bank_name", payload: bank?.name || "" })
+  }
 
   const handleWithdraw = () => {
-    const target = currAccount || accounts.find((a) => a.is_default)?.recipient_code;
-    if (!target) return alert('No account selected');
-    setLoading(true);
-    setTimeout(() => {
-      alert('Withdrawal simulated!');
-      setAmount(0);
-      setLoading(false);
-    }, 1000);
-  };
-
+      if (currAccount && currAccount !== "new") {
+        // const recipient_code = accounts?.data?.find(account => account?.account_number === currAccount)
+        return withdrawMutation.mutate({
+            amount,
+            // bank_account_id: currAccount
+            recipient_code: currAccount
+        })
+      }
+      const recipient_code = accounts?.data?.find(account => account?.is_default === true)?.id
+      if (!recipient_code) {
+          return Toast.show({
+              type: "info",
+              text1: "No default Account Set. Select an Account"
+          })
+      }
+      return withdrawMutation.mutate({
+          amount,
+          // bank_account_id: recipient_code
+          recipient_code
+      })
+  }
   const handleCurrentAccount = (val: string) => {
-    setCurrAccount(currAccount === val ? '' : val);
-  };
+      if (currAccount === val) {
+          return setCurrAccount("")
+      }
+      return setCurrAccount(val)
+  }
+
 
   return (
-    <View style={styles.container}>
-      {loading && <ActivityIndicator size="large" color="#007bff" />}
-      <Text style={styles.title}>Withdraw</Text>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Withdrawal',
+        }}
+      />
+      <View style={styles.container}>
+        {loading && <ActivityIndicator size="large" color="#007bff" />}
+        {/* <Text style={styles.title}>Withdraw</Text> */}
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          onPress={() => {
-            setTransferTab(0);
-            setActiveTab('BANK');
-          }}
-          style={[styles.tab, activeTab === 'BANK' && styles.activeTab]}>
-          <Text style={activeTab === 'BANK' ? styles.activeText : styles.inactiveText}>Bank</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab('TRANSFER')}
-          style={[styles.tab, activeTab === 'TRANSFER' && styles.activeTab]}>
-          <Text style={activeTab === 'TRANSFER' ? styles.activeText : styles.inactiveText}>
-            Transfer to Friends
-          </Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              setTransferTab(0);
+              setActiveTab('BANK');
+            }}
+            style={[styles.tab, activeTab === 'BANK' && styles.activeTab]}>
+            <Text style={activeTab === 'BANK' ? styles.activeText : styles.inactiveText}>Bank</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveTab('TRANSFER')}
+            style={[styles.tab, activeTab === 'TRANSFER' && styles.activeTab]}>
+            <Text style={activeTab === 'TRANSFER' ? styles.activeText : styles.inactiveText}>
+              Transfer to Friends
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 30 }}
-        showsVerticalScrollIndicator={false}>
-        {activeTab === 'BANK' ? (
-          <View>
-            {!noAccount && (
-              <View>
-                {accounts.map((item, idx) => {
-                  return (
-                    <View key={idx} style={styles.accountRow}>
-                      <TouchableOpacity onPress={() => handleCurrentAccount(item.recipient_code)}>
-                        <View style={styles.radioOuter}>
-                          {currAccount === item.recipient_code && (
-                            <View style={styles.radioInner} />
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                      {/* <Image source={Logo} style={styles.logo} /> */}
-                      <Text style={styles.bankName}>{item.bank_name}</Text>
-                      <Text style={styles.accountNumber}>****{item.account_number.slice(6)}</Text>
-                      <TouchableOpacity onPress={() => alert('Simulated delete')}>
-                        <Ionicons name="trash" size={20} color="red" />
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
-              <TouchableOpacity onPress={() => handleCurrentAccount('5000')}>
-                <View style={styles.radioOuter}>
-                  {currAccount === '5000' && <View style={styles.radioInner} />}
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 30 }}
+          showsVerticalScrollIndicator={false}>
+          {activeTab === 'BANK' ? (
+            <View>
+              {!noAccount && (
+                <View>
+                  {accounts?.data?.map((item, idx) => {
+                    return (
+                      <View key={idx} style={styles.accountRow}>
+                        <TouchableOpacity onPress={() => handleCurrentAccount(item.recipient_code)}>
+                          <View style={styles.radioOuter}>
+                            {currAccount === item.recipient_code && (
+                              <View style={styles.radioInner} />
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                        {/* <Image source={Logo} style={styles.logo} /> */}
+                        <Text style={styles.bankName}>{item.bank_name}</Text>
+                        <Text style={styles.accountNumber}>****{item.account_number.slice(6)}</Text>
+                        <TouchableOpacity onPress={() => alert('Simulated delete')}>
+                          <Ionicons name="trash" size={20} color="red" />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
                 </View>
-              </TouchableOpacity>
-              <Text style={styles.subTitle}>Add New Bank Account</Text>
-            </View>
-            {currAccount === '5000' && (
-              <View>
-                <DropDownScroll
-                  label="Select Bank"
-                  options={banks.map((bank) => bank.name)}
-                  value={selectedBank}
-                  onSelect={handleSelectBank}
-                />
+              )}
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
+                <TouchableOpacity onPress={() => handleCurrentAccount('new')}>
+                  <View style={styles.radioOuter}>
+                    {currAccount === 'new' && <View style={styles.radioInner} />}
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.subTitle}>Add New Bank Account</Text>
+              </View>
+              {currAccount === 'new' ? (
+                <View style={{ marginTop: 10 }}>
+                  <DropDownScroll
+                    label="Select Bank"
+                    options={banks?.data?.map((bank) => bank.name) || []}
+                    value={addBank?.bank_name || ''}
+                    onSelect={handleSelectBank}
+                  />
+                  <TextInput
+                    placeholder="Account Number"
+                    keyboardType="numeric"
+                    value={addBank.account_number}
+                    onChangeText={handleAccountNumber}
+                    style={styles.input}
+                  />
+                  {
+                      (verifyBankMutation.isSuccess && addBank?.account_number.length===10) && <Text style={{ marginTop: 4, color: Colors.light.primary }}>{verifyBankMutation.data.data.account_name}</Text>
+                  }
+                  <TouchableOpacity onPress={() =>  addBankMutation.mutate(addBank)} style={styles.btn}>
+                    <Text style={styles.btnText}>Add Bank</Text>
+                  </TouchableOpacity>
+                </View>
+              ) :
+              <>
+                <Text style={{ marginTop: 20, color: '#000' }}>Enter Amount (NGN)</Text>
                 <TextInput
-                  placeholder="Account Number"
+                  placeholder="min 50.00"
                   keyboardType="numeric"
-                  value={addBank.account_number}
-                  onChangeText={handleAccountNumber}
+                  value={amount ? amount?.toString() : ''}
+                  onChangeText={(val) => setAmount(Number(val))}
                   style={styles.input}
                 />
-                <TouchableOpacity onPress={() => addUserBank()} style={styles.btn}>
-                  <Text style={styles.btnText}>Add Bank</Text>
+                <TouchableOpacity onPress={handleWithdraw} style={styles.btn}>
+                  <Text style={styles.btnText}>Withdraw</Text>
                 </TouchableOpacity>
-              </View>
-            )}
-            <Text style={{ marginTop: 10, color: '#000' }}>Enter Amount (NGN)</Text>
-            <TextInput
-              placeholder="min 50.00"
-              keyboardType="numeric"
-              value={amount?.toString()}
-              onChangeText={(val) => setAmount(Number(val))}
-              style={styles.input}
-            />
-            <TouchableOpacity onPress={handleWithdraw} style={styles.btn}>
-              <Text style={styles.btnText}>Withdraw</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TransferToFriend />
-        )}
-      </ScrollView>
-    </View>
+              </>}
+            </View>
+          ) : (
+            <TransferToFriend />
+          )}
+        </ScrollView>
+      </View>
+    </>
   );
 };
 

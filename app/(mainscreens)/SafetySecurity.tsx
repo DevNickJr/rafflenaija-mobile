@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import ChangePasswordSection from '@/components/safetytabs/ChangePasswordSection';
 import RestrictAccount from '@/components/safetytabs/RestrictAccountSection';
 import DeactivateAccount from '@/components/safetytabs/DeactivateAccount';
+import { Stack } from 'expo-router';
 
 const tabs = ['Change Password', 'Restrict Account', 'Deactivate Account'];
 
@@ -58,32 +59,39 @@ const SafetySecurityScreen = () => {
   };
 
   return (
-    <View style={styles.screen}>
-      <View style={{ height: 60 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabContainer}>
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => handleTabPress(tab)}
-              style={[
-                styles.tab,
-                { borderBottomColor: activeTab === tab ? 'green' : 'transparent' },
-              ]}>
-              <Text style={[styles.tabText, { color: activeTab === tab ? 'green' : '#333' }]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Safety and Security',
+        }}
+      />
+      <View style={styles.screen}>
+        <View style={{ height: 60 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabContainer}>
+            {tabs.map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => handleTabPress(tab)}
+                style={[
+                  styles.tab,
+                  { borderBottomColor: activeTab === tab ? 'green' : 'transparent' },
+                ]}>
+                <Text style={[styles.tabText, { color: activeTab === tab ? 'green' : '#333' }]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-      <View style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.bodyContainer}>{renderTabContent()}</ScrollView>
+        <View style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={styles.bodyContainer}>{renderTabContent()}</ScrollView>
+        </View>
       </View>
-    </View>
+    </>
   );
 };
 
