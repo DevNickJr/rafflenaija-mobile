@@ -30,7 +30,7 @@ export const apiGetGames = (category_id: string) => {
 };
 
 export const apiPurchaseTicket = (ticket_code: string, { token }: { token: string }) => {
-  console.log({ token });
+  // console.log({ token });
   return BaseService.post(`${servicePrefix}/purchase-ticket/${ticket_code}/`, {}, Auth(token));
 };
 
@@ -54,7 +54,7 @@ export const apiGetMarketValue = (token: string, { id }: { id: string }) => {
   return BaseService.get(`${servicePrefix}/get-market-value/${id}/`, Auth(token));
 };
 export const apiSwap = (data: any, { id, token }: { id: string; token: string }) => {
-  return BaseService.post(`${servicePrefix}/swap/${id}/`, {}, Auth(token));
+  return BaseService.post(`${servicePrefix}/swap/${id || data?.id}/`, {}, Auth(token));
 };
 
 export const apiGetRecentWinners = () => {

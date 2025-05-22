@@ -4,6 +4,10 @@ import { useLocalSearchParams, router } from 'expo-router';
 import WaveUI from '@/components/WaveUi';
 import OtpBackend from '@/components/OtpBackend';
 import AuthButton from '@/components/AuthButton';
+import useMutate from '@/hooks/useMutation';
+import { IForgotPassword, IResetCode, IResponseData } from '@/interfaces';
+import { apiResendCode, apiVerifyCode } from '@/services/AuthService';
+import Toast from 'react-native-toast-message';
 
 const OtoInput: React.FC = () => {
   const [code, setCode] = useState('');
@@ -12,7 +16,7 @@ const OtoInput: React.FC = () => {
   const [resendEnabled, setResendEnabled] = useState(false);
   const { phone } = useLocalSearchParams<{ phone: string }>();
 
-  const max_code_length = 5;
+  const max_code_length = 6;
 
   useEffect(() => {
     if (timer === 0) {
@@ -43,6 +47,63 @@ const OtoInput: React.FC = () => {
     // Call backend to resend OTP using `phone`
   };
 
+
+      
+  const verifyCodeMutation = useMutate<IResetCode, any>(
+    apiVerifyCode,
+    {
+      onSuccess: (data: IResponseData<"">) => {
+          console.log("data", data)
+          // toast.success(data?.message || "OTP Verified Successfully")   
+          Toast.show({
+            text1: data?.message ||  "OTP Verified Successfully",
+            type: "success"
+          })
+
+          verifyOtp()
+          // setAuthOpen("COMPLETE-RESET")
+      },
+      showErrorMessage: true,
+    }
+  )
+  
+  const resendCodeMutation = useMutate<IForgotPassword, any>(
+    apiResendCode,
+    {
+      onSuccess: (data: IResponseData<"">) => {
+          console.log("data", data)
+          // dispatch({ type: "reset", payload: "" })
+          // toast.success(data?.message || "OTP Verified Successfully")   
+          Toast.show({
+            text1: data?.message ||  "OTP Resent",
+            type: "success"
+          })
+          resendOtp()
+          // setAuthOpen("COMPLETE-RESET")
+          // setStep(3)
+      },
+      showErrorMessage: true,
+    }
+  )
+
+  const handleSubmit = () => {
+    if (!code) {
+      return Toast.show({
+        type: "info",
+        text1: 'Input OTP'
+      })
+    }
+    if (code.length < 4) {
+      return Toast.show({
+        type: "info",
+        text1: 'OTP incomplete"'
+      })
+    }
+    verifyCodeMutation.mutate({
+      reset_code: code
+    })
+  }
+
   return (
     <Pressable onPress={Keyboard.dismiss} style={styles.container}>
       <WaveUI underlineTxt="" restTxt="OTP" />
@@ -54,17 +115,17 @@ const OtoInput: React.FC = () => {
           maxLength={max_code_length}
         />
 
+        <AuthButton
+          title="Verify OTP"
+          onPress={handleSubmit}
+          disabled={!pinReady || code.length < max_code_length}
+        />
+
         <Text style={styles.timerText}>
           {resendEnabled ? "Didn't get the OTP?" : `Resend available in ${formatTime(timer)}`}
         </Text>
 
-        <AuthButton
-          title="Verify OTP"
-          onPress={verifyOtp}
-          disabled={!pinReady || code.length < max_code_length}
-        />
-
-        {resendEnabled && <AuthButton title="Resend OTP" onPress={resendOtp} variant="outline" />}
+        {resendEnabled && <AuthButton title="Resend OTP" onPress={() => {resendCodeMutation?.mutate({ phone_number: phone })}} variant="outline" />}
       </View>
     </Pressable>
   );

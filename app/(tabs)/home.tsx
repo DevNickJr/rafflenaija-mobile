@@ -12,15 +12,20 @@ import {
   NativeSyntheticEvent,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import UserIdCard from '@/components/UserIdCard';
 import { Colors } from '@/constants/Colors';
 import { SafeView } from '@/components/SafeView';
-import { IBanner, ICategory, IGame, IResponseData, ITicket } from '@/interfaces';
+import { IBanner, ICategory, IGame, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
 import useFetch from '@/hooks/useFetch';
 import { apiGetCategories, apiGetGames } from '@/services/GameService';
 import { apiGetBannerItems } from '@/services/AdminService';
+import RaffleModal from '@/components/RaffleModal';
+import { useSession } from '@/providers/SessionProvider';
+import { apiGetUser } from '@/services/AuthService';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('screen');
 const NUM_CARDS = 5;
@@ -60,18 +65,44 @@ const codes = Array.from({ length: 26 }, (_, i) =>
 ).flat();
 
 const HomeScreen = () => {
-  const flatListRef = useRef<FlatList<string>>(null);
+  const { dispatch, access_token, refresh_token, ...context } = useSession()
+  // const flatListRef = useRef<FlatList<string>>(null);
   const bannerRef = useRef<FlatList<IBanner>>(null);
   const [activeDot, setActiveDot] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
-  
-  
+
   const { data: categories } = useFetch<IResponseData<ICategory[]>>({
     api: apiGetCategories,
     key: ["categories"],
   })
 
-  const { data: games, isLoading: isLoadingGames } = useFetch<IResponseData<IGame[]>>({
+  const { data: user, refetch: refetchUser } = useFetch<IResponseData<IUser>>({
+    api: apiGetUser,
+    key: ["user"],
+    requireAuth: true,
+    enabled: !!access_token,
+    showMessage: false
+  })
+
+  useEffect(() => {
+    if (access_token && user?.data) {
+      dispatch({ type: "LOGIN", payload: {
+        access_token: access_token,
+        refresh_token: refresh_token,
+        wallet_balance: user?.data?.wallet_balance || "",
+        phone_number: user?.data?.phone_number || "",
+        first_name: user?.data?.first_name || "",
+        last_name: user?.data?.last_name || "",
+        email: user?.data?.email || "",
+        is_verified: user?.data?.is_verified || false,
+        dob: user?.data?.dob || "",
+        gender: user?.data?.gender || "",
+        profile_picture: user?.data?.profile_picture || "",
+      }})
+    }
+  },[user, dispatch, access_token, refresh_token])
+
+  const { data: games, isLoading: isLoadingGames, refetch: refetchGames } = useFetch<IResponseData<IGame[]>>({
     api: apiGetGames,
     key: ["games", selectedCategory?.id || ""],
     param: selectedCategory?.id,
@@ -107,6 +138,18 @@ const HomeScreen = () => {
     offset: (width - 40) * index,
     index,
   });
+
+  const [ticket, setTicket] = useState<IRaffleTicket | null>(null)
+      
+  const handleRaffle = (code: string, price: string) => {
+    if (!context.is_logged_in) {
+      return Toast.show({
+        type: 'info',
+        text1: 'Your session has expired'
+      })
+    }
+    setTicket({ code, price })
+  }
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -159,10 +202,11 @@ const HomeScreen = () => {
   //     </TouchableOpacity>
   //   );
   // };
-  const CodeCard = React.memo(({ item, index }: { item: ITicket; index: number; }) => {
+  const CodeCard = React.memo(({ item, index }: { item: ITicket & { price: string }; index: number; }) => {
     const isRaffled = item.status != "active";
     return (
       <TouchableOpacity
+        onPress={() => handleRaffle(item.code, item.price)}
         style={[
           {
             width: cardSize,
@@ -180,7 +224,7 @@ const HomeScreen = () => {
       </TouchableOpacity>
     );
   });
-  const renderCodeItem = ({ item, index }: { item: ITicket; index: number }) => <CodeCard item={item} index={index} />;
+  const renderCodeItem = ({ item, index }: { item: ITicket & { price: string }; index: number }) => <CodeCard item={item} index={index} />;
   // const renderCodeItem: ListRenderItem<ITicket> = ({ item, index }) => <CodeCard item={item} index={index} />;
 
   const renderHeader = () => (
@@ -201,7 +245,7 @@ const HomeScreen = () => {
             <Text style={{ color: selectedCategory?.id === item?.id  ? '#fff' : '#000' }}>{item?.name}</Text>
           </TouchableOpacity>
         )}
-        keyExtractor={(_, i) => i.toString()}
+        keyExtractor={(item, i) => `${item.id}-${i}`}
         contentContainerStyle={styles.categoryStyle}
         showsHorizontalScrollIndicator={false}
       />
@@ -223,7 +267,7 @@ const HomeScreen = () => {
         data={banners?.data || []}
         renderItem={renderBannerItem}
         horizontal
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, i) => `${item.id}-${i}`}
         pagingEnabled
         getItemLayout={getItemLayout}
         onScroll={handleScroll}
@@ -244,47 +288,57 @@ const HomeScreen = () => {
           {
               isLoadingGames?
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
-                  <Text>Loading...</Text>
+                  <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
                 </View>
                 :
-            games?.data?.map((game) => 
-              <View>
-                 {/* Random Select Row */}
-                <View style={styles.randomRow}>
-                  <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
-                  <TouchableOpacity style={styles.randomBtn}>
-                    <Text style={{ color: Colors.light.primary }}>Random Select</Text>
-                  </TouchableOpacity>
-                </View>            
-                {
-                  game?.raffles[0]?.tickets?.length > 0 ? 
-                  <View style={styles.raffleContainer}>
+                games?.data?.map((game, index) => 
+                  <View key={`${game.id}-${index}`}>
+                      {/* Random Select Row */}
+                      <View style={styles.randomRow}>
+                        <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
+                        <TouchableOpacity style={styles.randomBtn}>
+                          <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+                        </TouchableOpacity>
+                      </View>            
                     {
-                      game?.raffles[0]?.tickets?.map((ticket, index) => (
-                        <CodeCard item={ticket} index={index} />
-                      ))
+                      game?.raffles[0]?.tickets?.length > 0 ? 
+                      <View style={styles.raffleContainer}>
+                        {
+                          game?.raffles[0]?.tickets?.map((ticket, index) => (
+                            <CodeCard key={`${ticket?.code}-${index}`} item={{
+                              ...ticket,
+                              price: game.raffles[0].ticket_price,
+                            }} index={index} />
+                          ))
+                      }
+                      </View>
+                      :
+                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                        <Text>No raffles available</Text>
+                      </View>
                   }
+                    {/* <FlatList
+                      data={game?.raffles[0]?.tickets || []}
+                      // ref={flatListRef}
+                      keyExtractor={(item, index) => `${item?.code}-${index}`}
+                      numColumns={5}
+                      renderItem={renderCodeItem}
+                      // ListHeaderComponent={renderHeader}
+                      contentContainerStyle={{ paddingBottom: 40 }}
+                      showsVerticalScrollIndicator={false}
+                    /> */}
                   </View>
-                  :
-                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
-                    <Text>No raffles available</Text>
-                  </View>
-              }
-                {/* <FlatList
-                  data={game?.raffles[0]?.tickets || []}
-                  // ref={flatListRef}
-                  keyExtractor={(item, index) => `${item?.code}-${index}`}
-                  numColumns={5}
-                  renderItem={renderCodeItem}
-                  // ListHeaderComponent={renderHeader}
-                  contentContainerStyle={{ paddingBottom: 40 }}
-                  showsVerticalScrollIndicator={false}
-                /> */}
-              </View>
-              )
+                  )
           }
         </>
       </ScrollView>
+      <RaffleModal
+        visible={!!ticket?.code}
+        onClose={() => setTicket(null)}
+        raffle={ticket}
+        refetchGames={refetchGames}
+        refetchUser={refetchUser}
+      />
     </SafeView>
   );
 };
