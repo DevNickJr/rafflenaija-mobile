@@ -15,10 +15,10 @@ export default function BackButton({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      marginHorizontal: 24,
+      // marginHorizontal: 24,
     }}>
       <TouchableOpacity onPress={() => router.back()} style={{  }}>
-        <Ionicons name="chevron-back" size={24} color="black" />
+        <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
       <Text style={{
         fontSize: 20,

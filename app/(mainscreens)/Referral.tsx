@@ -15,9 +15,17 @@ import {
   Platform,
   ToastAndroid,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import { Stack } from 'expo-router';
+import { apiGetReferrals, apiReferral } from '@/services/ReferralService';
+import useFetch from '@/hooks/useFetch';
+import { usePagination } from '@/hooks/usePagination';
+import { useSorting } from '@/hooks/useSorting';
+import { IReferral } from '@/interfaces';
+import { formatDate } from '@/lib/date';
+import { Colors } from '@/constants/Colors';
 
 const tableData = Array(20).fill({
   user: 'David William',
@@ -43,14 +51,34 @@ const DATA = Array.from({ length: 50 }).map((_, i) => ({
   
 }));
 
+
+export interface IResponseData<T> {
+  total_referrals: boolean;
+  referrals: T;
+}
+
 const ReferralScreen = () => {
   const [isVisible, setIsVisible]=useState(false)
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 8;
-  const pageCount = Math.ceil(DATA.length / itemsPerPage);
-  const paginatedData = DATA.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+    
+  const { limit, onPaginationChange: setPage, page, pagination } = usePagination();
+  const { sorting, onSortingChange, field, order } = useSorting();
+  // const [page, setPage] = useState(1);
+  // const pageCount = Math.ceil(DATA.length / limit);
+  // const paginatedData = DATA.slice((page - 1) * limit, page * limit);
 
-  const linkText = "http://rafflenaija/referral/001823"
+  const { data: referrals, isLoading } = useFetch<IResponseData<IReferral[]>>({
+    api: apiGetReferrals,
+    select: ((d: any) => d?.data?.data),
+    key: ["referrals", page, limit],
+    requireAuth: true
+})
+
+const { data: referral } = useFetch<{ referral_link: string; wallet: { balance: number } }>({
+    api: apiReferral,
+    select: ((d: any) => d?.data?.data),
+    key: ["referral"],
+    requireAuth: true
+})
 
   const handleCopy = async(text: string) => {
       await Clipboard.setStringAsync(text);
@@ -79,10 +107,10 @@ const ReferralScreen = () => {
           <View style={styles.referralCodeContainer}>
             <TextInput
               style={styles.input}
-              value={linkText}
+              value={referral?.referral_link}
               editable={false}
             />
-            <TouchableOpacity style={styles.copyButton} onPress={()=>handleCopy(linkText)} >
+            <TouchableOpacity style={styles.copyButton} onPress={()=>handleCopy(referral?.referral_link || '')} >
               <Text style={styles.copyText}>Copy Code</Text>
             </TouchableOpacity>
           </View>
@@ -91,11 +119,11 @@ const ReferralScreen = () => {
           <View style={styles.summaryRow}>
             <View style={styles.summaryBox}>
               <Text style={styles.summaryLabel}>Total Referral</Text>
-              <Text style={styles.summaryValue}>200</Text>
+              <Text style={styles.summaryValue}>{referrals?.total_referrals || 0}</Text>
             </View>
             <View style={styles.summaryBox}>
               <Text style={styles.summaryLabel}>Amount Earned</Text>
-              <Text style={styles.summaryValue}>₦ 2,000</Text>
+              <Text style={styles.summaryValue}>{`₦${referral?.wallet?.balance || "0.0"}`}</Text>
             </View>
           </View>
 
@@ -111,23 +139,41 @@ const ReferralScreen = () => {
               <View style={[styles.tableRow, styles.tableHeader]}>
                 <Text style={styles.tableHeaderText}>Referred User</Text>
                 <Text style={styles.tableHeaderText}>Date Referred</Text>
+                <Text style={styles.tableHeaderText}>Amount</Text>
                 <Text style={styles.tableHeaderText}>Status</Text>
-                <Text style={styles.tableHeaderText}>Referred Amount</Text>
-                <Text style={styles.tableHeaderText}>Action</Text>
+                {/* <Text style={styles.tableHeaderText}>Referred Amount</Text> */}
+                {/* <Text style={styles.tableHeaderText}>Action</Text> */}
               </View>
 
               {/* Table Body */}
-              {paginatedData.map((item, index) => (
+              {
+                (!referrals?.referrals || !referrals?.referrals?.length || !referrals?.total_referrals)
+                ? 
+                <View style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginVertical: 20
+                }} className='text-center'>
+                  {
+                  isLoading ? 
+                    <ActivityIndicator size="large" color={Colors.light.primary} />
+                    :
+                    <Text>No result</Text>
+                  }
+              
+                </View>
+                :
+              referrals?.referrals?.map((item, index) => (
                 <View key={index} style={styles.tableRow}>
-                  <Text style={styles.tableCell}>{item.user}</Text>
-                  <Text style={styles.tableCell}>{item.date}</Text>
+                  <Text style={styles.tableCell}>{item.referred_user_phone_number}</Text>
+                  <Text style={styles.tableCell}>{formatDate(item.created_at)}</Text>
+                  <Text style={styles.tableCell}>{item.amount}</Text>
                   <Text style={[styles.tableCell, item.status === 'Success' ? styles.success : styles.pending]}>
                     {item.status}
                   </Text>
-                  <Text style={styles.tableCell}>{item.amount}</Text>
-                  <TouchableOpacity>
+                  {/* <TouchableOpacity>
                     <Text style={[styles.tableCell, styles.claimButton]}>{item.action}</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               ))}
             </View>
@@ -140,16 +186,19 @@ const ReferralScreen = () => {
                 <Text style={page === 1 ? styles.activePageText : styles.pageText}>{page}</Text>
               </TouchableOpacity>
             ))} */}
-            <Pagination
-              totalItems={pageCount * 8}
-              pageSize={8}
-              currentPage={page}
-              onPageChange={setPage}
-              activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
-              activeTextStyle={{color:"#fff"}}
-              btnStyle={{backgroundColor:"trasparent"}}
-              textStyle={{color:"black"}}
-            />
+            {
+              Number(referrals?.total_referrals || 0) > limit &&
+              <Pagination
+                totalItems={Number(referrals?.total_referrals || 0)}
+                pageSize={limit}
+                currentPage={page}
+                onPageChange={setPage}
+                activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
+                activeTextStyle={{color:"#fff"}}
+                btnStyle={{backgroundColor:"trasparent"}}
+                textStyle={{color:"black"}}
+              />
+            }
           </View>
         </ScrollView>
 

@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useReducer, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import Dropdown from '../Dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ModalBtn from '../ModalBtn';
+import Toast from 'react-native-toast-message';
+import { IDuration, IDurationAction, IResponseData } from '@/interfaces';
+import { apiRestrictAccount } from '@/services/AuthService';
+import useMutate from '@/hooks/useMutation';
 
 interface Props {
   visible: boolean;
@@ -10,15 +14,60 @@ interface Props {
   onConfirm: () => void;
 }
 
+const initialState: IDuration = {
+  duration: 0,
+  date: ''
+}
+
 const RestrictAccount: React.FC<Props> = ({ visible, onCancel, onConfirm }) => {
+  const [user, dispatch] = useReducer((state: IDuration, action: IDurationAction) => {
+    if (action.type === 'reset') {
+        return initialState
+    }
+    return { ...state, [action.type]: action.payload }
+}, initialState)
+
+const restrictAccountMutation = useMutate<IDuration, any>(
+    apiRestrictAccount,
+    {
+      onSuccess: (data: IResponseData<"">) => {
+        //   console.log("new data", data)
+        dispatch({ type: "reset", payload: "" })
+        Toast.show({
+          type: 'success',
+          text1: data?.message || "Account Restricted successfully"
+        });
+      },
+      showErrorMessage: true,
+      requireAuth: true
+    }
+  )
+
+  const handleRestrictAccount = () => {
+    if (!user.date) {
+        return Toast.show({
+          type: 'success',
+          text1: "Select end Date"
+        });
+    }
+    let GivenDate = new Date(user?.date);
+    let CurrentDate = new Date();
+
+    let days = GivenDate.getTime() - CurrentDate.getTime()
+
+    if (GivenDate < CurrentDate){
+        return Toast.show({
+          type: 'success',
+          text1: "Given date must be greater than today's date."
+        });
+    }
+    dispatch({ type: "duration", payload: Math.ceil(days/1000/60/60/24) })
+    restrictAccountMutation?.mutate({ ...user, duration: Math.ceil(days/1000/60/60/24) })
+  }
+
   const [restrictionPeriod, setRestrictionPeriod] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const handleRestrictionContinue = () => {
-    console.log('Restriction Period:', restrictionPeriod);
-    console.log('End Date:', selectedDate?.toDateString());
-  };
 
   return (
     <View style={styles.container}>
@@ -53,8 +102,8 @@ const RestrictAccount: React.FC<Props> = ({ visible, onCancel, onConfirm }) => {
       )}
 
       {selectedDate && (
-        <TouchableOpacity style={styles.saveButton} onPress={handleRestrictionContinue}>
-          <Text style={styles.saveText}>Continue</Text>
+        <TouchableOpacity style={styles.saveButton} onPress={handleRestrictAccount}>
+          <Text style={styles.saveText}>{restrictAccountMutation ? "Restricting.." : "Continue"}</Text>
         </TouchableOpacity>
       )}
 

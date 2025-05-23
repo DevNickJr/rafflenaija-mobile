@@ -10,29 +10,30 @@ import {
   FlatList,
   Platform,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
+import { usePagination } from '@/hooks/usePagination';
+import { useSorting } from '@/hooks/useSorting';
+import useFetch from '@/hooks/useFetch';
+import { IHistory, IResponseData } from '@/interfaces';
+import { apiGetHistory, apiSwap } from '@/services/GameService';
+import useMutate from '@/hooks/useMutation';
+import Toast from 'react-native-toast-message';
+import { Colors } from '@/constants/Colors';
 
-const DATA = Array.from({ length: 20 }).map((_, i) => ({
-  id: i.toString(),
-  gamePlayed: 'PowerBank',
-  gameId: i % 2 === 0 ? 'RN-123460' : 'RN-000123',
-  stake: '100 NGN',
-  status: i % 2 === 0 ? 'Lost' : 'Won',
-}));
-
-const GameRow = ({ item }: { item: typeof DATA[0] }) => (
+const GameRow = ({ item, handleSwap }: { item: IHistory; handleSwap: (id: string) => void }) => (
   <View style={[styles.row, item.status === 'Won' ? styles.won : styles.lost]}>
     <View style={[styles.rowItem,styles.cell]}>
       <Text style={styles.label}>Game Played</Text>
-      <Text style={styles.value}>{item.gamePlayed}</Text>
+      <Text style={styles.value}>{item.item_name}</Text>
     </View>
 
     <View style={[styles.rowItem,styles.cell]}>
       <Text style={styles.label}>Game ID</Text>
-      <Text style={styles.value}>{item.gameId}</Text>
+      <Text style={styles.value}>{item.ticket_code}</Text>
     </View>
 
     <View style={[styles.rowItem,styles.cell]}>
@@ -42,29 +43,85 @@ const GameRow = ({ item }: { item: typeof DATA[0] }) => (
 
     <View style={[styles.rowItem,styles.cell]}>
       <Text style={styles.label}>Status</Text>
-      <Text style={[styles.value, item.status === 'Lost' ? styles.statusLost : styles.statusWon]}>{item.status}</Text>
+      <Text style={[styles.value, (item?.status === "won")? styles.statusWon : styles.statusLost]}>{item.status}</Text>
     </View>
 
     <TouchableOpacity
-      style={[styles.swapButton, item.status === 'Lost' && styles.swapButtonDisabled]}
-      disabled={item.status === 'Lost'}>
+      onPress={() => handleSwap(item.id || '')}
+      style={[styles.swapButton, (item?.status != "won" || !item?.is_paid) && styles.swapButtonDisabled]}
+      disabled={item.status != 'won'}>
       <Text style={styles.swapText}>Swap Item</Text>
     </TouchableOpacity>
   </View>
 );
 
-const Game=()=> {
-  const [activeTab, setActiveTab] = useState(0);
-  const [page, setPage] = useState(1);
+const Game =() => {
+  const [activeTab, setActiveTab] = useState<"finished" | "pending" | "">("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [dateModalOpen, setDateModalOpen] = useState(false)
+
+  const [swapId, setSwapId] = useState("")
+
+  const handleSwap = (id: string) => {
+      setSwapId(id)
+      swapMutation.mutate({ id })
+  }
+  
+  const { limit, onPaginationChange, page, pagination } = usePagination();
+  const { sorting, onSortingChange, field, order } = useSorting();
+
+  const { data: history, isLoading } = useFetch<IResponseData<IHistory[]>>({
+      api: apiGetHistory,
+      key: ["history", activeTab, String(pagination.pageIndex), startDate, endDate],
+      param: {
+          page: pagination.pageIndex + 1,
+          type: activeTab,
+          start_date: startDate,
+          end_date: endDate,
+      },
+      requireAuth: true
+  })
+
+
+  const swapMutation = useMutate<{ id?: string }, any>(
+      apiSwap,
+      {
+        onSuccess: (data: IResponseData<"">) => {
+          setSwapId("")
+          Toast.show({
+            type: 'success',
+            text1: 'Swap was successful'
+          })
+        },
+        showErrorMessage: true,
+        requireAuth: true,
+        id: swapId,
+      }
+    )
+
+
   const [searchTxt, setSearchTxt] = useState("")
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const itemsPerPage = 6;
-  const pageCount = Math.ceil(DATA.length / itemsPerPage);
-  const paginatedData = DATA.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-
-  const Toptabs =["All Games","Finished","On-Going"]
+  const Toptabs: {
+    label: string;
+    value: typeof activeTab;
+  }[] =[
+    {
+      label: 'All Games',
+      value: ''
+    },
+    {
+      label: 'Finished',
+      value: 'finished',
+    },
+    {
+      label: 'On-Going',
+      value: 'pending',
+    },
+  ]
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -81,9 +138,9 @@ const Game=()=> {
             <View style={styles.tabRow}>
               {
                 Toptabs.map((item,idx)=>(
-                <TouchableOpacity key={idx} onPress={()=>setActiveTab(idx)}>
-                  <Text style={[styles.tabText, (activeTab===idx) && styles.tabActive]}>
-                    {item}
+                <TouchableOpacity key={idx} onPress={()=>setActiveTab(item.value)}>
+                  <Text style={[styles.tabText, (activeTab === item.value) && styles.tabActive]}>
+                    {item.label}
                   </Text>
                 </TouchableOpacity>
 
@@ -129,29 +186,48 @@ const Game=()=> {
           />
         )}
 
-        <ScrollView horizontal>
           <ScrollView style={{ width: '100%' }}>
-            {paginatedData.map(item => (
-              <GameRow item={item} key={item.id} />
+            {
+               (!history?.data || !history?.data?.length || !history?.count)
+               ? 
+               <View style={{
+                 justifyContent: 'center',
+                 alignItems: 'center',
+                 marginVertical: 20,
+                 flex: 1,
+                 display: 'flex'
+               }} className='text-center'>
+                  {
+                    isLoading ? 
+                      <ActivityIndicator size="large" color={Colors.light.primary} />
+                      :
+                      <Text>No result</Text>
+                    }
+               </View>
+               :
+            history?.data?.map(item => (
+              <GameRow item={item} key={item.id} handleSwap={handleSwap} />
             ))}
           </ScrollView>
-        </ScrollView>
-
-        <Pagination
-          totalItems={pageCount * 5}
-          pageSize={pageCount}
-          currentPage={page}
-          onPageChange={setPage}
-          activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
-          activeTextStyle={{color:"#fff"}}
-          btnStyle={{backgroundColor:"trasparent"}}
-          textStyle={{color:"black"}}
-        />
+          {
+            Number(history?.count || 0) > limit &&
+              <Pagination
+                totalItems={Number(history?.count || 0)}
+                pageSize={limit}
+                currentPage={page}
+                onPageChange={onPaginationChange}
+                activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
+                activeTextStyle={{color:"#fff"}}
+                btnStyle={{backgroundColor:"trasparent"}}
+                textStyle={{color:"black"}}
+              />
+            }
       </View>
     </SafeAreaView>
   );
 }
 export default Game;
+
 const styles = StyleSheet.create({
   container: {
     padding: 10,

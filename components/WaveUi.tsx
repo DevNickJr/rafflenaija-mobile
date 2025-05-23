@@ -16,9 +16,9 @@ type Props = {
 const WaveUI = ({ underlineTxt, restTxt, size = 38 }: Props) => {
   return (
     <View style={styles.container}>
-      <View style={{ backgroundColor: Colors.light.primary, height: 200 }}>
+      <View style={{ backgroundColor: Colors.light.primary, height: restTxt === 'up' ? 200 : 200  }}>
         <Svg
-          height="60%"
+          height={restTxt === 'up' ? "40%" : "60%" }
           width="100%"
           viewBox="0 0 1440 320"
           style={{ position: 'absolute', top: 180 }}>
@@ -26,7 +26,11 @@ const WaveUI = ({ underlineTxt, restTxt, size = 38 }: Props) => {
         </Svg>
       </View>
 
-      <View style={styles.textcontainer}>
+      <View style={{ 
+         marginTop: restTxt === 'up' ? 30 : 60,
+         marginLeft: 30,
+         width: 150,
+       }}>
         <Text style={{ fontSize: size, fontWeight: '600' }}>
           <Text style={{ textDecorationLine: 'underline', paddingBottom: 30 }}>{underlineTxt}</Text>{' '}
           {restTxt}

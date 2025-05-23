@@ -9,10 +9,18 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import { Stack } from 'expo-router';
+import { usePagination } from '@/hooks/usePagination';
+import { useSorting } from '@/hooks/useSorting';
+import { IResponseData, ITransaction } from '@/interfaces';
+import { apiGetTransactions } from '@/services/WalletService';
+import useFetch from '@/hooks/useFetch';
+import { formatDate } from '@/lib/date';
+import { Colors } from '@/constants/Colors';
 const transactions = [
   {
     time: '21/12/2023 10:20pm',
@@ -110,20 +118,34 @@ const getStatusStyle = (status: string) => {
   }
 };
 
+type TabType = "" | "deposit" | "withdrawal" | "bet"
+const tabs: TabType[] = ['', 'deposit', 'withdrawal', 'bet']
+
 const Transaction = () => {
-    const [filter, setFilter] = useState<'All' | 'Deposit' | 'Withdrawal' | 'Game'>('All');
+  const [activeTab, setActiveTab] = useState<TabType>("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [dateModalOpen, setDateModalOpen] = useState(false)
+  
+  const { limit, onPaginationChange, page, pagination } = usePagination();
+  const { sorting, onSortingChange, field, order } = useSorting();
+
+  const { data: transactions, isLoading } = useFetch<IResponseData<ITransaction[]>>({
+      api: apiGetTransactions,
+      key: ["transactions", String(pagination.pageIndex), activeTab, startDate, endDate],
+      param: {
+          page: pagination.pageIndex + 1,
+          transaction_type: activeTab,
+          start_date: startDate,
+          end_date: endDate,
+      },
+      requireAuth: true
+  })
+
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
   
-    const filtered = sampleData.filter(item =>
-      (filter === 'All' || item.type === filter)
-    );
-  
-    const paginated = filtered.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
   
     const handleDateChange = (event: any, selectedDate?: Date) => {
       setShowDatePicker(false);
@@ -134,43 +156,43 @@ const Transaction = () => {
       <>
         <Stack.Screen
           options={{
-            title: 'Referrals',
+            title: 'Transactions',
           }}
         />
         {/* <SafeAreaView style={styles.container}> */}
           <View style={{flex:1, paddingHorizontal:10}}>
-          {/* Filter Buttons + Date Picker */}
-          <View style={styles.topBar}>
-            {['All', 'Deposit', 'Withdrawal', 'Game'].map(type => (
+            {/* Filter Buttons + Date Picker */}
+            <View style={styles.topBar}>
+              {tabs.map(type => (
+                <TouchableOpacity
+                  key={type}
+                  onPress={() => {
+                    setActiveTab(type);
+                    setCurrentPage(1);
+                  }}
+                  style={[
+                    styles.filterBtn,
+                    activeTab === type && styles.activeFilterBtn,
+                  ]}
+                >
+                  <Text style={[
+                    styles.filterBtnText,
+                    activeTab === type && { color: 'green' }
+                  ]}>
+                    {type ? type : 'All'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+      
               <TouchableOpacity
-                key={type}
-                onPress={() => {
-                  setFilter(type as any);
-                  setCurrentPage(1);
-                }}
-                style={[
-                  styles.filterBtn,
-                  filter === type && styles.activeFilterBtn,
-                ]}
+                onPress={() => setShowDatePicker(true)}
+                style={styles.datePickerBtn}
               >
-                <Text style={[
-                  styles.filterBtnText,
-                  filter === type && { color: 'green' }
-                ]}>
-                  {type}
+                <Text style={styles.filterBtnText}>
+                  {date.toISOString().split('T')[0]}
                 </Text>
               </TouchableOpacity>
-            ))}
-    
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={styles.datePickerBtn}
-            >
-              <Text style={styles.filterBtnText}>
-                {date.toISOString().split('T')[0]}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            </View>
     
           {showDatePicker && (
             <DateTimePicker
@@ -193,18 +215,34 @@ const Transaction = () => {
                 <Text style={[styles.cell, styles.headerCell]}>Details</Text>
               </View>
               <ScrollView>
-                {paginated.map((item, index) => (
+                {
+                  (!transactions?.data || !transactions?.data?.length)
+                      ? 
+                      <View style={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginVertical: 20
+                      }} className='text-center'>
+                        {
+                        isLoading ? 
+                          <ActivityIndicator size="large" color={Colors.light.primary} />
+                          :
+                          <Text>No result</Text>
+                        }
+                      </View>
+                      :
+                transactions?.data?.map((item, index) => (
                   <View key={index} style={styles.row}>
-                    <Text style={styles.cell}>{item.time}</Text>
-                    <Text style={styles.cell}>{item.type}</Text>
+                    <Text style={styles.cell}>{formatDate(item.created_at)}</Text>
+                    <Text style={styles.cell}>{item.transaction_type}</Text>
                     <Text style={styles.cell}>{item.id}</Text>
                     <Text style={styles.cell}>{item.amount}</Text>
                     <Text style={[styles.cell, getStatusStyle(item.status)]}>
                       {item.status}
                     </Text>
-                    <TouchableOpacity style={styles.cell}>
+                    {/* <TouchableOpacity style={styles.cell}>
                       <Text style={{ color: 'green' }}>Details</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
                 ))}
               </ScrollView>
@@ -212,18 +250,19 @@ const Transaction = () => {
           </ScrollView>
     
           {/* Pagination */}
-          <Pagination
-            totalItems={(sampleData.length-1)}
-            pageSize={10}
-          //   totalPages={Math.ceil(filtered.length / itemsPerPage)}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-            activeBtnStyle={{backgroundColor:'red', borderWidth:0, borderRadius:4}}
-            activeTextStyle={{color:"#fff"}}
-            btnStyle={{backgroundColor:"trasparent"}}
-            textStyle={{color:"black"}}
-            
-          />
+          {
+              Number(transactions?.count || 0) > limit &&
+              <Pagination
+                  totalItems={Number(transactions?.count || 0)}
+                  pageSize={limit}
+                  currentPage={page}
+                  onPageChange={onPaginationChange}
+                  activeBtnStyle={{backgroundColor:'red', borderWidth:0, borderRadius:4}}
+                  activeTextStyle={{color:"#fff"}}
+                  btnStyle={{backgroundColor:"trasparent"}}
+                  textStyle={{color:"black"}}
+              />
+            }
           </View>
         {/* </SafeAreaView> */}
       </>
@@ -260,6 +299,7 @@ const styles = StyleSheet.create({
     },
     filterBtnText: {
         color: 'gray',
+        textTransform: 'capitalize'
     },
     datePickerBtn: {
         paddingVertical: 6,

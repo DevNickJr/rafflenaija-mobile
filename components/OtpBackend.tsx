@@ -80,15 +80,15 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   otpInputContainer: {
-    width: 300,
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-around',
     gap: 4,
   },
   otpInput: {
     borderWidth: 2,
-    width: 65,
-    height: 64,
+    width: '15%',
+    // height: 64,
     padding: 12,
     borderRadius: 5,
   },

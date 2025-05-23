@@ -58,14 +58,15 @@ const useMutate = <T, K>(
       }
     },
     onError: (error: any, variables, context) => {
-      // console.log("error", error)
-      // console.log("error2", showErrorMessage, error?.response?.data?.message)
       const message =
-        error?.response?.data?.message ||
-        error?.response?.data?.data?.message ||
-        error?.response?.data?.detail;
+      error?.response?.data?.message ||
+      error?.response?.data?.data?.message ||
+      error?.response?.data?.detail;
+      console.log("error2", showErrorMessage, error?.response?.data?.message)
       if (typeof message === 'string') {
+        console.log("error", {error, message})
         if (message === 'Token Expired') {
+          // handle refresh
           Toast.show({
             type: 'info',
             text1: 'Token Expired. Log back in to access your account',
@@ -73,14 +74,14 @@ const useMutate = <T, K>(
           return signOut();
         } else if (showErrorMessage) {
           Toast.show({
-            type: 'info',
+            type: 'error',
             text1: message || 'An Error Occurred!',
           });
         }
       } else if (showErrorMessage) {
         Toast.show({
           type: 'info',
-          text1: error?.response?.data?.message[0] || 'An Error Occurred!',
+          text1: error?.response?.data?.message?.[0] || 'An Error Occurred!',
         });
       }
       if (onError) {

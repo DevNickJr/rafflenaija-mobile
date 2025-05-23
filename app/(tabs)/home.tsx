@@ -12,15 +12,24 @@ import {
   NativeSyntheticEvent,
   Platform,
   ScrollView,
+  Modal,
+  ImageSourcePropType,
+  ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import UserIdCard from '@/components/UserIdCard';
 import { Colors } from '@/constants/Colors';
 import { SafeView } from '@/components/SafeView';
-import { IBanner, ICategory, IGame, IResponseData, ITicket } from '@/interfaces';
+import { IBanner, ICategory, IGame, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
 import useFetch from '@/hooks/useFetch';
 import { apiGetCategories, apiGetGames } from '@/services/GameService';
 import { apiGetBannerItems } from '@/services/AdminService';
+import { Ionicons } from '@expo/vector-icons';
+import ModalComponent from '@/components/ModalComponent';
+import RaffleModal from '@/components/RaffleModal';
+import { useSession } from '@/providers/SessionProvider';
+import { apiGetUser } from '@/services/AuthService';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('screen');
 const NUM_CARDS = 5;
@@ -31,12 +40,16 @@ const totalGapWidth = CARD_GAP * (NUM_CARDS - 1);
 const availableWidth = width - SIDE_PADDING - totalGapWidth;
 const cardSize = availableWidth / NUM_CARDS;
 
+interface IBannerV2 {
+  id: number;
+  image: ImageSourcePropType;
+}
 
-// const slideImages: IBanner[] = [
-//   { id: 1, image: require('@/assets/images/favicon.png') },
-//   { id: 2, image: require('@/assets/images/react-logo.png') },
-//   { id: 3, image: require('@/assets/images/homelogo.png') },
-// ];
+const slideImages: IBannerV2[] = [
+  { id: 1, image: require('@/assets/images/favicon.png') },
+  { id: 2, image: require('@/assets/images/react-logo.png') },
+  { id: 3, image: require('@/assets/images/homelogo.png') },
+];
 
 // const categories = [
 //   'Powerbank',
@@ -60,18 +73,51 @@ const codes = Array.from({ length: 26 }, (_, i) =>
 ).flat();
 
 const HomeScreen = () => {
-  const flatListRef = useRef<FlatList<string>>(null);
+  const { dispatch, access_token, refresh_token, ...context } = useSession()
+  // const flatListRef = useRef<FlatList<string>>(null);
   const bannerRef = useRef<FlatList<IBanner>>(null);
   const [activeDot, setActiveDot] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
+
+  // Modal Details
+  const [showImageModal, setShowImageModal]=useState(false)
+  const [modalImgIdx, setModalImgIdx]=useState(0)
+  const [showNotifyModal, setShowNotifyModal]=useState(false)
   
   
+
   const { data: categories } = useFetch<IResponseData<ICategory[]>>({
     api: apiGetCategories,
     key: ["categories"],
   })
 
-  const { data: games, isLoading: isLoadingGames } = useFetch<IResponseData<IGame[]>>({
+  const { data: user, refetch: refetchUser } = useFetch<IResponseData<IUser>>({
+    api: apiGetUser,
+    key: ["user"],
+    requireAuth: true,
+    enabled: !!access_token,
+    showMessage: false
+  })
+
+  useEffect(() => {
+    if (access_token && user?.data) {
+      dispatch({ type: "LOGIN", payload: {
+        access_token: access_token,
+        refresh_token: refresh_token,
+        wallet_balance: user?.data?.wallet_balance || "",
+        phone_number: user?.data?.phone_number || "",
+        first_name: user?.data?.first_name || "",
+        last_name: user?.data?.last_name || "",
+        email: user?.data?.email || "",
+        is_verified: user?.data?.is_verified || false,
+        dob: user?.data?.dob || "",
+        gender: user?.data?.gender || "",
+        profile_picture: user?.data?.profile_picture || "",
+      }})
+    }
+  },[user, dispatch, access_token, refresh_token])
+
+  const { data: games, isLoading: isLoadingGames, refetch: refetchGames } = useFetch<IResponseData<IGame[]>>({
     api: apiGetGames,
     key: ["games", selectedCategory?.id || ""],
     param: selectedCategory?.id,
@@ -107,6 +153,18 @@ const HomeScreen = () => {
     offset: (width - 40) * index,
     index,
   });
+
+  const [ticket, setTicket] = useState<IRaffleTicket | null>(null)
+      
+  const handleRaffle = (code: string, price: string) => {
+    if (!context.is_logged_in) {
+      return Toast.show({
+        type: 'info',
+        text1: 'Your session has expired'
+      })
+    }
+    setTicket({ code, price })
+  }
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -159,10 +217,11 @@ const HomeScreen = () => {
   //     </TouchableOpacity>
   //   );
   // };
-  const CodeCard = React.memo(({ item, index }: { item: ITicket; index: number; }) => {
+  const CodeCard = React.memo(({ item, index }: { item: ITicket & { price: string }; index: number; }) => {
     const isRaffled = item.status != "active";
     return (
       <TouchableOpacity
+        onPress={() => handleRaffle(item.code, item.price)}
         style={[
           {
             width: cardSize,
@@ -180,7 +239,7 @@ const HomeScreen = () => {
       </TouchableOpacity>
     );
   });
-  const renderCodeItem = ({ item, index }: { item: ITicket; index: number }) => <CodeCard item={item} index={index} />;
+  const renderCodeItem = ({ item, index }: { item: ITicket & { price: string }; index: number }) => <CodeCard item={item} index={index} />;
   // const renderCodeItem: ListRenderItem<ITicket> = ({ item, index }) => <CodeCard item={item} index={index} />;
 
   const renderHeader = () => (
@@ -201,7 +260,7 @@ const HomeScreen = () => {
             <Text style={{ color: selectedCategory?.id === item?.id  ? '#fff' : '#000' }}>{item?.name}</Text>
           </TouchableOpacity>
         )}
-        keyExtractor={(_, i) => i.toString()}
+        keyExtractor={(item, i) => `${item.id}-${i}`}
         contentContainerStyle={styles.categoryStyle}
         showsHorizontalScrollIndicator={false}
       />
@@ -223,7 +282,7 @@ const HomeScreen = () => {
         data={banners?.data || []}
         renderItem={renderBannerItem}
         horizontal
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, i) => `${item.id}-${i}`}
         pagingEnabled
         getItemLayout={getItemLayout}
         onScroll={handleScroll}
@@ -244,11 +303,11 @@ const HomeScreen = () => {
           {
               isLoadingGames?
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
-                  <Text>Loading...</Text>
+                  <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
                 </View>
                 :
-            games?.data?.map((game) => 
-              <View>
+            games?.data?.map((game, index) => 
+              <View key={index}>
                  {/* Random Select Row */}
                 <View style={styles.randomRow}>
                   <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
@@ -261,7 +320,10 @@ const HomeScreen = () => {
                   <View style={styles.raffleContainer}>
                     {
                       game?.raffles[0]?.tickets?.map((ticket, index) => (
-                        <CodeCard item={ticket} index={index} />
+                        <CodeCard item={{
+                          ...ticket,
+                          price: game?.raffles[0]?.ticket_price
+                        }} index={index} key={index}/>
                       ))
                   }
                   </View>
@@ -285,6 +347,62 @@ const HomeScreen = () => {
           }
         </>
       </ScrollView>
+
+      <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showImageModal}
+          onRequestClose={() => {
+            // Alert.alert('Modal has been closed.');
+            setShowImageModal(false);
+          }}>
+          <View style={styles.modalContainer}>
+            {/* Top Nav */}
+            <View style={styles.modalTopNNav}>
+              <TouchableOpacity 
+                // style={styles.modalImgBtn}
+                onPress={()=>setShowImageModal(false)}
+              >
+                <Ionicons name="close" size={30} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalInnerWrapper}>
+              <Image 
+                source={slideImages[modalImgIdx].image}
+                style={{width:300, height:350,}}
+                resizeMode="stretch"
+              />
+
+              <View style={{flexDirection:"row", gap:6, justifyContent:"center"}}>
+                {
+                  slideImages.map((item, idx)=>(
+                    <TouchableOpacity 
+                      key={idx} onPress={()=>setModalImgIdx(idx)}
+                      style={styles.modalImgBtn}
+                    >
+                      <Image 
+                        source={item.image}
+                        style={{width:60, height:60,}}
+                        resizeMode="stretch"
+                      />
+                    </TouchableOpacity>
+                  ))
+                
+                }
+              </View>
+            </View>
+          </View>
+      </Modal>
+
+      <ModalComponent
+        visible={showNotifyModal}
+        title='Are you sure you want to raffle the Card?'
+        content='You are about to pay to raffle the card'
+        titleSize={20}
+        boldTxt={`₦${1000.00}`}
+        onCancel={() => setShowNotifyModal(false)}
+        onConfirm={()=>{}}
+      />
     </SafeView>
   );
 };
@@ -350,4 +468,26 @@ const styles = StyleSheet.create({
     color: '#952524',
     textAlign: 'center',
   },
+  modalContainer:{
+    flex:1,
+    backgroundColor:"rgba(0,0,0,0.6)"
+  },
+  modalInnerWrapper:{
+    flex:1, 
+    alignItems:"center",
+    justifyContent:"center",
+    gap:20
+  },
+  modalImgBtn:{
+    borderWidth:1,
+    borderColor:"#c0c0c0",
+    padding:2,
+    borderRadius:4
+  },
+  modalTopNNav:{
+    marginTop: Platform.OS==="android"?10:60,
+    paddingHorizontal:20,
+    flexDirection:"row",
+    justifyContent:"flex-end"
+  }
 });

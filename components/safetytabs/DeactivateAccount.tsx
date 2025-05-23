@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useReducer, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,10 @@ import {
   ScrollView,
 } from 'react-native';
 import ModalBtn from '../ModalBtn';
+import { IDuration, IDurationAction, IResponseData } from '@/interfaces';
+import { apiDeactivateAccount } from '@/services/AuthService';
+import useMutate from '@/hooks/useMutation';
+import Toast from 'react-native-toast-message';
 
 interface Props {
   visible: boolean;
@@ -16,12 +20,40 @@ interface Props {
   onConfirm: () => void;
 }
 
+const initialState: IDuration = {
+  duration: 0,
+  date: ''
+}
+
 const DeactivateAccount: React.FC<Props> = ({ visible, onCancel, onConfirm }) => {
+  const [user, dispatch] = useReducer((state: IDuration, action: IDurationAction) => {
+      if (action.type === 'reset') {
+          return initialState
+      }
+      return { ...state, [action.type]: action.payload }
+  }, initialState)
+
+  const deactivateAccountMutation = useMutate<any, any>(
+      apiDeactivateAccount,
+      {
+        onSuccess: (data: IResponseData<"">) => {
+          dispatch({ type: "reset", payload: "" })
+          Toast.show({
+            type: 'success',
+            text1: data?.message || "Account Deactivated successfully"
+          })
+        },
+        showErrorMessage: true,
+        requireAuth: true
+      }
+    )
+  
   const [showDeactivateForm, setShowDeactivateForm] = useState(false);
   const [reason, setReason] = useState('');
 
   const handleSubmit = () => {
     console.log('Deactivation reason:', reason);
+    deactivateAccountMutation?.mutate(user)
     // You can trigger an API call here
   };
 
@@ -76,7 +108,7 @@ const DeactivateAccount: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
             />
 
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitText}>Submit</Text>
+              <Text style={styles.submitText}>{deactivateAccountMutation?.isPending ? "Deactivating..." : "Submit"}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
