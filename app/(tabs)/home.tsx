@@ -12,6 +12,8 @@ import {
   NativeSyntheticEvent,
   Platform,
   ScrollView,
+  Modal,
+  ImageSourcePropType,
   ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -22,6 +24,8 @@ import { IBanner, ICategory, IGame, IRaffleTicket, IResponseData, ITicket, IUser
 import useFetch from '@/hooks/useFetch';
 import { apiGetCategories, apiGetGames } from '@/services/GameService';
 import { apiGetBannerItems } from '@/services/AdminService';
+import { Ionicons } from '@expo/vector-icons';
+import ModalComponent from '@/components/ModalComponent';
 import RaffleModal from '@/components/RaffleModal';
 import { useSession } from '@/providers/SessionProvider';
 import { apiGetUser } from '@/services/AuthService';
@@ -36,12 +40,16 @@ const totalGapWidth = CARD_GAP * (NUM_CARDS - 1);
 const availableWidth = width - SIDE_PADDING - totalGapWidth;
 const cardSize = availableWidth / NUM_CARDS;
 
+interface IBannerV2 {
+  id: number;
+  image: ImageSourcePropType;
+}
 
-// const slideImages: IBanner[] = [
-//   { id: 1, image: require('@/assets/images/favicon.png') },
-//   { id: 2, image: require('@/assets/images/react-logo.png') },
-//   { id: 3, image: require('@/assets/images/homelogo.png') },
-// ];
+const slideImages: IBannerV2[] = [
+  { id: 1, image: require('@/assets/images/favicon.png') },
+  { id: 2, image: require('@/assets/images/react-logo.png') },
+  { id: 3, image: require('@/assets/images/homelogo.png') },
+];
 
 // const categories = [
 //   'Powerbank',
@@ -70,6 +78,13 @@ const HomeScreen = () => {
   const bannerRef = useRef<FlatList<IBanner>>(null);
   const [activeDot, setActiveDot] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
+
+  // Modal Details
+  const [showImageModal, setShowImageModal]=useState(false)
+  const [modalImgIdx, setModalImgIdx]=useState(0)
+  const [showNotifyModal, setShowNotifyModal]=useState(false)
+  
+  
 
   const { data: categories } = useFetch<IResponseData<ICategory[]>>({
     api: apiGetCategories,
@@ -291,53 +306,102 @@ const HomeScreen = () => {
                   <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
                 </View>
                 :
-                games?.data?.map((game, index) => 
-                  <View key={`${game.id}-${index}`}>
-                      {/* Random Select Row */}
-                      <View style={styles.randomRow}>
-                        <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
-                        <TouchableOpacity style={styles.randomBtn}>
-                          <Text style={{ color: Colors.light.primary }}>Random Select</Text>
-                        </TouchableOpacity>
-                      </View>            
+            games?.data?.map((game, index) => 
+              <View key={index}>
+                 {/* Random Select Row */}
+                <View style={styles.randomRow}>
+                  <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
+                  <TouchableOpacity style={styles.randomBtn}>
+                    <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+                  </TouchableOpacity>
+                </View>            
+                {
+                  game?.raffles[0]?.tickets?.length > 0 ? 
+                  <View style={styles.raffleContainer}>
                     {
-                      game?.raffles[0]?.tickets?.length > 0 ? 
-                      <View style={styles.raffleContainer}>
-                        {
-                          game?.raffles[0]?.tickets?.map((ticket, index) => (
-                            <CodeCard key={`${ticket?.code}-${index}`} item={{
-                              ...ticket,
-                              price: game.raffles[0].ticket_price,
-                            }} index={index} />
-                          ))
-                      }
-                      </View>
-                      :
-                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
-                        <Text>No raffles available</Text>
-                      </View>
+                      game?.raffles[0]?.tickets?.map((ticket, index) => (
+                        <CodeCard item={{
+                          ...ticket,
+                          price: game?.raffles[0]?.ticket_price
+                        }} index={index} key={index}/>
+                      ))
                   }
-                    {/* <FlatList
-                      data={game?.raffles[0]?.tickets || []}
-                      // ref={flatListRef}
-                      keyExtractor={(item, index) => `${item?.code}-${index}`}
-                      numColumns={5}
-                      renderItem={renderCodeItem}
-                      // ListHeaderComponent={renderHeader}
-                      contentContainerStyle={{ paddingBottom: 40 }}
-                      showsVerticalScrollIndicator={false}
-                    /> */}
                   </View>
-                  )
+                  :
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                    <Text>No raffles available</Text>
+                  </View>
+              }
+                {/* <FlatList
+                  data={game?.raffles[0]?.tickets || []}
+                  // ref={flatListRef}
+                  keyExtractor={(item, index) => `${item?.code}-${index}`}
+                  numColumns={5}
+                  renderItem={renderCodeItem}
+                  // ListHeaderComponent={renderHeader}
+                  contentContainerStyle={{ paddingBottom: 40 }}
+                  showsVerticalScrollIndicator={false}
+                /> */}
+              </View>
+              )
           }
         </>
       </ScrollView>
-      <RaffleModal
-        visible={!!ticket?.code}
-        onClose={() => setTicket(null)}
-        raffle={ticket}
-        refetchGames={refetchGames}
-        refetchUser={refetchUser}
+
+      <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showImageModal}
+          onRequestClose={() => {
+            // Alert.alert('Modal has been closed.');
+            setShowImageModal(false);
+          }}>
+          <View style={styles.modalContainer}>
+            {/* Top Nav */}
+            <View style={styles.modalTopNNav}>
+              <TouchableOpacity 
+                // style={styles.modalImgBtn}
+                onPress={()=>setShowImageModal(false)}
+              >
+                <Ionicons name="close" size={30} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalInnerWrapper}>
+              <Image 
+                source={slideImages[modalImgIdx].image}
+                style={{width:300, height:350,}}
+                resizeMode="stretch"
+              />
+
+              <View style={{flexDirection:"row", gap:6, justifyContent:"center"}}>
+                {
+                  slideImages.map((item, idx)=>(
+                    <TouchableOpacity 
+                      key={idx} onPress={()=>setModalImgIdx(idx)}
+                      style={styles.modalImgBtn}
+                    >
+                      <Image 
+                        source={item.image}
+                        style={{width:60, height:60,}}
+                        resizeMode="stretch"
+                      />
+                    </TouchableOpacity>
+                  ))
+                
+                }
+              </View>
+            </View>
+          </View>
+      </Modal>
+
+      <ModalComponent
+        visible={showNotifyModal}
+        title='Are you sure you want to raffle the Card?'
+        content='You are about to pay to raffle the card'
+        titleSize={20}
+        boldTxt={`₦${1000.00}`}
+        onCancel={() => setShowNotifyModal(false)}
+        onConfirm={()=>{}}
       />
     </SafeView>
   );
@@ -404,4 +468,26 @@ const styles = StyleSheet.create({
     color: '#952524',
     textAlign: 'center',
   },
+  modalContainer:{
+    flex:1,
+    backgroundColor:"rgba(0,0,0,0.6)"
+  },
+  modalInnerWrapper:{
+    flex:1, 
+    alignItems:"center",
+    justifyContent:"center",
+    gap:20
+  },
+  modalImgBtn:{
+    borderWidth:1,
+    borderColor:"#c0c0c0",
+    padding:2,
+    borderRadius:4
+  },
+  modalTopNNav:{
+    marginTop: Platform.OS==="android"?10:60,
+    paddingHorizontal:20,
+    flexDirection:"row",
+    justifyContent:"flex-end"
+  }
 });

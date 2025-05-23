@@ -34,8 +34,8 @@ export default function MainLayout() {
       <Stack
         screenOptions={{
           // headerBackVisible: false,
-          // headerLeft: () => <BackButton label='aa' />,
-          // headerTitleAlign: 'center',
+          headerLeft: () => <BackButton label=''/>,
+          headerTitleAlign: 'center',
           // headerStyle: {
           //   backgroundColor: 'transparent',
           // },
