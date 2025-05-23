@@ -4,24 +4,39 @@ import ModalBtn from './ModalBtn';
 
 type Props = {
   visible: boolean;
+  title: string;
+  content: string;
+  boldTxt?: string;
+  titleSize?: number;
+  contentSize?: number;
+  boldTxtSize?: number;
+  onCancel?: () => void;
+  onConfirm?: () => void;
 };
 
-const ModalComponent = ({ visible = true }: Props) => {
+const ModalComponent = ({ 
+  visible = true,
+  title,
+  content,
+  boldTxt,
+  titleSize = 18,
+  contentSize = 16,
+  boldTxtSize = 26,
+  onCancel = () => {},
+  onConfirm = () => {}
+}: Props) => {
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalWrapper}>
         <View style={styles.modalBox}>
-          <Text style={styles.modalTitle}>Deactivate Account?</Text>
-          <Text style={styles.modalText}>
-            You have the option to deactivate your account from this page. Deactivation freezes all
-            existing funds, logs out any active sessions (including this device), and restricts
-            access to your account. To reactivate, you'll need to verify an OTP, reset your
-            password, and, if needed, your Raffle Naija PIN.
-          </Text>
-
+          <Text style={[styles.modalTitle, { fontSize: titleSize }]}>{title}</Text>
+          <Text style={[styles.modalText, { fontSize: contentSize }]}>{content}</Text>
+          {!!boldTxt && (
+            <Text style={[styles.modalNote, { fontSize: boldTxtSize }]}>{boldTxt}</Text>
+          )}
           <View style={styles.modalActions}>
-            <ModalBtn title="Cancle" onPress={() => {}} inverted />
-            <ModalBtn title="OK" onPress={() => {}} />
+            <ModalBtn title="Cancel" onPress={onCancel} inverted />
+            <ModalBtn title="OK" onPress={onConfirm} />
           </View>
         </View>
       </View>
@@ -51,8 +66,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
     marginBottom: 10,
+    textAlign:"center"
   },
   modalText: {
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalNote: {
+    fontWeight: '600',
     marginBottom: 20,
     textAlign: 'center',
   },
