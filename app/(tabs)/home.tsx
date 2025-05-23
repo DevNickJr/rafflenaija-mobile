@@ -320,7 +320,10 @@ const HomeScreen = () => {
                   <View style={styles.raffleContainer}>
                     {
                       game?.raffles[0]?.tickets?.map((ticket, index) => (
-                        <CodeCard item={ticket} index={index} key={index}/>
+                        <CodeCard item={{
+                          ...ticket,
+                          price: game?.raffles[0]?.ticket_price
+                        }} index={index} key={index}/>
                       ))
                   }
                   </View>
@@ -341,44 +344,6 @@ const HomeScreen = () => {
                 /> */}
               </View>
               )
-                games?.data?.map((game, index) => 
-                  <View key={`${game.id}-${index}`}>
-                      {/* Random Select Row */}
-                      <View style={styles.randomRow}>
-                        <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
-                        <TouchableOpacity style={styles.randomBtn}>
-                          <Text style={{ color: Colors.light.primary }}>Random Select</Text>
-                        </TouchableOpacity>
-                      </View>            
-                    {
-                      game?.raffles[0]?.tickets?.length > 0 ? 
-                      <View style={styles.raffleContainer}>
-                        {
-                          game?.raffles[0]?.tickets?.map((ticket, index) => (
-                            <CodeCard key={`${ticket?.code}-${index}`} item={{
-                              ...ticket,
-                              price: game.raffles[0].ticket_price,
-                            }} index={index} />
-                          ))
-                      }
-                      </View>
-                      :
-                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
-                        <Text>No raffles available</Text>
-                      </View>
-                  }
-                    {/* <FlatList
-                      data={game?.raffles[0]?.tickets || []}
-                      // ref={flatListRef}
-                      keyExtractor={(item, index) => `${item?.code}-${index}`}
-                      numColumns={5}
-                      renderItem={renderCodeItem}
-                      // ListHeaderComponent={renderHeader}
-                      contentContainerStyle={{ paddingBottom: 40 }}
-                      showsVerticalScrollIndicator={false}
-                    /> */}
-                  </View>
-                  )
           }
         </>
       </ScrollView>
@@ -437,13 +402,6 @@ const HomeScreen = () => {
         boldTxt={`₦${1000.00}`}
         onCancel={() => setShowNotifyModal(false)}
         onConfirm={()=>{}}
-      />
-      <RaffleModal
-        visible={!!ticket?.code}
-        onClose={() => setTicket(null)}
-        raffle={ticket}
-        refetchGames={refetchGames}
-        refetchUser={refetchUser}
       />
     </SafeView>
   );

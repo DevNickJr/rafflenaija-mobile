@@ -24,14 +24,6 @@ import useMutate from '@/hooks/useMutation';
 import Toast from 'react-native-toast-message';
 import { Colors } from '@/constants/Colors';
 
-const DATA = Array.from({ length: 20 }).map((_, i) => ({
-  id: i.toString(),
-  gamePlayed: 'PowerBank',
-  gameId: i % 2 === 0 ? 'RN-123460' : 'RN-000123',
-  stake: '100 NGN',
-  status: i % 2 === 0 ? 'Lost' : 'Won',
-}));
-
 const GameRow = ({ item, handleSwap }: { item: IHistory; handleSwap: (id: string) => void }) => (
   <View style={[styles.row, item.status === 'Won' ? styles.won : styles.lost]}>
     <View style={[styles.rowItem,styles.cell]}>
@@ -63,7 +55,7 @@ const GameRow = ({ item, handleSwap }: { item: IHistory; handleSwap: (id: string
   </View>
 );
 
-const Game=()=> {
+const Game =() => {
   const [activeTab, setActiveTab] = useState<"finished" | "pending" | "">("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
@@ -235,6 +227,7 @@ const Game=()=> {
   );
 }
 export default Game;
+
 const styles = StyleSheet.create({
   container: {
     padding: 10,

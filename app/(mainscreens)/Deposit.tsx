@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import {
   View,
   Text,
@@ -14,11 +14,21 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import * as Clipboard from 'expo-clipboard';
 import { Stack } from 'expo-router';
+import { usePaystack } from 'react-native-paystack-webview';
+import { useSession } from '@/providers/SessionProvider';
+import { IDeposit, IDepositAction, IResponseData, IReturnDeposit, IUser } from '@/interfaces';
+import { apiGetUser } from '@/services/AuthService';
+import useFetch from '@/hooks/useFetch';
+import Toast from 'react-native-toast-message';
+import useMutate from '@/hooks/useMutation';
+import { apiDeposit } from '@/services/WalletService';
 
+const initialState = {
+  email: "",
+  amount: 0,
+  reference: (new Date()).getTime().toString(),
+}
 const Deposit = () => {
-  const [activeTab, setActiveTab] = useState<'BANK' | 'TRANSFER'>('BANK');
-  const [amount, setAmount] = useState<number>(0);
-  const [inProgress, setInProgress] = useState<boolean>(false);
   const [copiedText, setCopiedText] = useState<string>('');
 
   const handleCopy = async (text: string) => {
@@ -30,19 +40,161 @@ const Deposit = () => {
     }
   };
 
-  const handlePayment = () => {
-    if (!amount || amount < 100) {
-      Alert.alert('Error', 'Minimum deposit amount is NGN 100.00');
-      return;
-    }
-    setInProgress(true);
+
+  const { popup } = usePaystack();
+
+
+  const [inProgress, setInprogress] = useState(false)
+  const { access_token, dispatch: authStateDispatch, wallet_balance, ...context } = useSession()
+  
+  const [activeTab, setActiveTab] = useState<"BANK" | "TRANSFER">("BANK")
+
+  const [user, dispatch] = useReducer((state: IDeposit, action: IDepositAction) => {
+      if (action.type === "reset") {
+        return initialState
+      }
+          return { ...state, [action.type]: action.payload }
+  }, initialState)
+
+  const { data: userData, refetch: refetchUser } = useFetch<IResponseData<IUser>>({
+      api: apiGetUser,
+      key: ["user"],
+      requireAuth: true,
+      enabled: !!access_token,
+      showMessage: false
+  })
+
+  const [amount, setAmount] = useState(0)
+
+  const onSuccess = (reference: any) => {
+      // Implementation for whatever you want to do with reference and after success call.
+      console.log({reference});
+      setAmount(0)
+      refetchUser()
+      Toast.show({
+        type: 'success',
+        text1: "Payment is being processed"
+    })
   };
+  
+  const onClose = () => {
+      // implementation for  whatever you want to do when the Paystack dialog closed.
+      console.log('closed')
+      dispatch({ type: "reset", payload: "" })
+  }
+  
+  const handlePayment = () => {
+      if (!amount) {
+          return Toast.show({
+            type: 'info',
+            text1: "Enter Deposit Amount"
+          })
+      }
+
+      if (amount < 100) {
+          return Toast.show({
+            type: 'info',
+            text1: "Amount must be 100 and above"
+          })
+      }
+
+      const reference = (Date.now().toString() + Math.random().toString().replace(".", "")).slice(-24)
+      const email = context?.phone_number + "@raffle-naija.com" // temporal 
+      // const email = context.email ? context.email : context?.phone_number + "@raffle-naija.com"
+
+      dispatch({ type: "email", payload: email })
+      dispatch({ type: "reference", payload: reference })
+      dispatch({ type: "amount", payload: amount })
+
+      depositMutation.mutate({
+          email,
+          reference,
+          amount
+      })
+  }
+  
+  const depositMutation = useMutate<IDeposit, IResponseData<IReturnDeposit>>(
+      apiDeposit,
+      {
+        onSuccess: () => {
+            Toast.show({
+                type: 'success',
+                text1: "Loading payment page"
+            })
+
+            console.log({ popup })
+            console.log('success', user.email, user.reference,  Number(user.amount || 0)*100,)
+            
+
+            popup.checkout({
+              email: user.email,
+              reference: user.reference,
+              amount: Number(user.amount || 0)*100,
+              // plan: 'PLN_example123',
+              // invoice_limit: 3,
+              // subaccount: 'SUB_abc123',
+              // split_code: 'SPL_def456',
+              // split: {
+              //   type: 'percentage',
+              //   bearer_type: 'account',
+              //   subaccounts: [
+              //     { subaccount: 'ACCT_abc', share: 60 },
+              //     { subaccount: 'ACCT_xyz', share: 40 }
+              //   ]
+              // },
+              // metadata: {
+              //   custom_fields: [
+              //     {
+              //       display_name: 'Order ID',
+              //       variable_name: 'order_id',
+              //       value: 'OID1234'
+              //     }
+              //   ]
+              // },
+              onSuccess,
+              // onClose,
+              // config: {   } 
+
+              // onSuccess: (res) => console.log('Success:', res),
+              onCancel: () => {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Payment Cancelled',
+                })
+                console.log('User cancelled')
+              },
+              onLoad: (res) => console.log('WebView Loaded:', res),
+              onError: (err) => {
+                Toast.show({
+                  type: 'error',
+                  text1: 'An error occurred',
+                })
+                console.log({ err })
+              }
+            });
+            // payNow({ })
+        },
+        showErrorMessage: true,
+        requireAuth: true
+      }
+    )
+
+  useEffect(() => {
+      if (userData?.data?.wallet_balance && (wallet_balance != userData?.data?.wallet_balance)) {
+          authStateDispatch({ type: "UPDATE", payload: {
+              wallet_balance: userData?.data?.wallet_balance || 0,
+          }})
+      }
+  },[userData?.data?.wallet_balance, wallet_balance, authStateDispatch])
 
   const handlePaid = () => {
-    Alert.alert('Info', 'Payment confirmation is ongoing. Your account will be credited shortly');
-    setInProgress(false);
-    setAmount(0);
-  };
+      Toast.show({
+        type: 'success',
+        text1: 'Payment confirmation is ongoing. Your account will be credited shortly',
+      })
+      setInprogress(false)
+      setAmount(0)
+  }
 
   return (
     <>
