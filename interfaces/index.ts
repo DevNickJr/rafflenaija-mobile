@@ -57,7 +57,6 @@ export interface IUser {
   gender: string;
   profile_picture: string;
   wallet_balance?: string | number;
-  isAdmin: boolean;
   created_at?: string;
 }
 

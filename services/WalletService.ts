@@ -4,11 +4,9 @@ import {
   IDeposit,
   ISecurityQuestions,
   ITransfer,
-  IUserLogin,
-  IUserRegister,
   IVerifyBank,
   IWithdraw,
-} from '@/interface';
+} from '@/interfaces';
 import BaseService from './BaseService';
 
 const servicePrefix = '/wallet';
@@ -88,11 +86,3 @@ export const apiGetSupportedBanks = (token: string) => {
 export const apiSetSecurityQuestions = (data: ISecurityQuestions, { token }: { token: string }) => {
   return BaseService.post(`${servicePrefix}/security-questions/`, data, Auth(token));
 };
-
-// export const apiLogin =  (data: IUserLogin) => {
-//     return BaseService.post(`${servicePrefix}/login/`, data)
-// }
-
-// export const apiRegister =  (data: IUserRegister) => {
-//     return BaseService.post(`${servicePrefix}/register/`, data)
-// }

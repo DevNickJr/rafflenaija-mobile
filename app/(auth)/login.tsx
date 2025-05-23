@@ -1,93 +1,230 @@
-import React, { useState } from 'react';
-import { TextInput, TouchableOpacity, Pressable } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import AuthButton from '@/components/AuthButton';
+import InputField from '@/components/AuthInput';
+import AuthLink from '@/components/AuthLink';
+import Checkbox from '@/components/Checkbox';
+import WaveUI from '@/components/WaveUi';
+import useMutate from '@/hooks/useMutation';
+import { ILoginReducerAction, ILoginResponse, IResponseData, IUserLogin } from '@/interfaces';
+import { useSession } from '@/providers/SessionProvider';
+import { apiLogin } from '@/services/AuthService';
+import { router } from 'expo-router';
+import React, { useReducer, useState } from 'react';
+import { StatusBar, Text, View, StyleSheet } from 'react-native';
+import Toast from 'react-native-toast-message';
 
-export default function LoginScreen() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
+
+const initialState: IUserLogin = {
+  phone_number: '',
+  password: '',
+};
+
+export default function Login() {
+  const { signIn, access_token } = useSession();
+  // const [phoneNumber, setPhoneNumber] = useState('');
+  // const [password, setPassword] = useState('');
+  const [isChecked, setChecked] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const [user, dispatch] = useReducer((state: IUserLogin, action: ILoginReducerAction) => {
+    if (action.type === 'reset') {
+      return initialState;
+    }
+    return { ...state, [action.type]: action.payload };
+  }, initialState);
+
+  const loginMutation = useMutate<IUserLogin, any>(apiLogin, {
+    onSuccess: (data: IResponseData<ILoginResponse>) => {
+      signIn({
+        ...data?.data?.user,
+        access_token: data?.data?.access_token,
+        refresh_token: data?.data?.refresh_token,
+        wallet_balance: data?.data?.wallet_balance,
+      });
+      Toast.show({
+        type: 'success',
+        text1: 'Logged in',
+      });
+
+      dispatch({ type: 'reset' });
+      return router.push("/(tabs)/home");
+    },
+    onError(error) {
+      console.log(error)
+      if (typeof error?.response?.data?.message === 'string') {
+        if (error?.response?.data?.message === 'Please verify your account') {
+          Toast.show({
+            type: 'success',
+            text1: 'Please verify your account',
+          });
+          return setStep(2);
+        }
+        Toast.show({
+          type: 'error',
+          text1: error?.response?.data?.message || 'An Error Occurred!',
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: error?.response?.data?.message?.[0] || 'An Error Occurred!',
+        });
+      }
+    },
+  });
+  // showErrortext1: true,
+
+  const login = async () => {
+    if (!user.phone_number) {
+      Toast.show({
+        type: 'info',
+        text1: 'Phone number cannot be empty',
+      });
+      return;
+    }
+    if (!user.password) {
+      Toast.show({
+        type: 'info',
+        text1: 'Password cannot be empty',
+      });
+      return;
+    }
+
+    loginMutation.mutate(user);
+  };
+
+  
+  const dummyLogin=()=>{
+
+    let myUser ={
+      phone_number: "09012345678",
+      first_name: "John",
+      last_name: "Doe",
+      email: "john.doe@example.com",
+      is_verified: true,
+      dob: "1990-01-01",
+      gender: "Male",
+      profile_picture: "https://farm4.staticflickr.com/3075/3168662394_7d7103de7d_z_d.jpg",
+      created_at: "2023-01-01T00:00:00Z",
+    }
+
+
+
+    signIn({
+      ...myUser,
+      access_token: "dummy-access-token-123",
+      refresh_token: "dummy-refresh-token-456",
+      wallet_balance: "5000.00",
+    });
+    Toast.show({
+      type: 'success',
+      text1: 'Logged in',
+    });
+
+    dispatch({ type: 'reset' });
+    return router.push("/(tabs)/home");
+  }
+
+  // useEffect(() => {
+  //   if (loginMutation.isSuccess) {
+
+  //   }
+  // }, [loginMutation?.isSuccess, setAuthOpen])
 
   return (
-    <ThemedView className="flex flex-1 justify-center px-6 py-10 bg-white">
-      {/* Header */}
-      <ThemedView className="flex-row justify-between items-center mb-6">
-        <ThemedText type="title" className="text-4xl font-bold">
-          Login
-        </ThemedText>
-        <Pressable>
-          <AntDesign name="close" size={24} color="black" />
-        </Pressable>
-      </ThemedView>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
 
-      {/* Subtext */}
-      <ThemedText className="text-xs max-w-[280px] mb-8">
-        Please enter your credentials to access your account and stand a chance to win items.
-      </ThemedText>
+      <WaveUI underlineTxt="Sign" restTxt="in" />
 
-      {/* Form */}
-      <ThemedView className="flex gap-6">
-        {/* Phone Number */}
-        <ThemedView className="flex flex-col gap-2">
-          <ThemedText className="text-sm">Phone Number</ThemedText>
-          <TextInput
-            className="p-4 w-full text-sm rounded-full border border-gray-300"
-            placeholder="09012345678"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            placeholderTextColor="#999"
-          />
-        </ThemedView>
+      <View style={styles.form}>
+        <Text style={styles.label}>Phone Number</Text>
+        <InputField
+          icon="call-outline"
+          placeholder="Enter your phone number"
+          keyboardType="phone-pad"
+          maxLength={11}
+          numbersOnly
+          value={user?.phone_number}
+          onChangeText={(value) => dispatch({ type: 'phone_number', payload: value })}
+          // value={phoneNumber}
+          // onChangeText={setPhoneNumber}
+        />
 
-        {/* Password */}
-        <ThemedView className="flex flex-col gap-2">
-          <ThemedText className="text-sm">Password</ThemedText>
-          <ThemedView className="relative w-full">
-            <TextInput
-              className="p-4 pr-12 w-full text-sm rounded-full border border-gray-300"
-              placeholder="Enter your password"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-              placeholderTextColor="#999"
-            />
-            <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              className="absolute top-4 right-4">
-              {showPassword ? (
-                <Ionicons name="eye-off" size={24} color="black" />
-              ) : (
-                <Ionicons name="eye" size={24} color="black" />
-              )}
-            </Pressable>
-          </ThemedView>
-        </ThemedView>
+        <Text style={styles.label}>Password</Text>
+        <InputField
+          icon="lock-closed-outline"
+          placeholder="Enter your password"
+          secureTextEntry
+          value={user?.password}
+          onChangeText={(value) => dispatch({ type: 'password', payload: value })}
+          // onChangeText={setPassword}
+          // value={password}
+        />
 
-        {/* Remember me and Forgot Password */}
-        <ThemedView className="flex-row justify-between items-center mt-2">
-          <ThemedView className="flex-row items-center space-x-2">
-            <ThemedView className="w-4 h-4 rounded border border-gray-400" />
-            <ThemedText className="text-sm">Remember me</ThemedText>
-          </ThemedView>
-          <TouchableOpacity>
-            <ThemedText className="text-sm font-bold text-primary">Forgot Password?</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
+        <View style={styles.options}>
+          <Checkbox label="Remember Me" isChecked={isChecked} setChecked={setChecked} />
+          <AuthLink label="Forgot Password?" onPress={() => router.navigate('/(auth)/phone')} />
+        </View>
 
-        {/* Login Button */}
-        <TouchableOpacity className="p-4 mt-6 rounded-full bg-primary">
-          <ThemedText className="font-bold text-center text-white">Login</ThemedText>
-        </TouchableOpacity>
+        <AuthButton title="Login" onPress={login} />
+        {/* <AuthButton title="Login" onPress={() => login(user)} /> */}
 
-        {/* Signup Link */}
-        <TouchableOpacity className="mt-6">
-          <ThemedText className="text-sm text-center">
-            Not Registered yet?.
-            <ThemedText className="font-bold text-primary">Create an Account</ThemedText>
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-    </ThemedView>
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>Don’t have an Account?</Text>
+          <AuthLink label=" Sign up" onPress={() => router.navigate('/(auth)/register')} />
+        </View>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    backgroundColor: '#fa6c6c',
+    height: '35%',
+    borderBottomRightRadius: 60,
+    borderBottomLeftRadius: 60,
+    justifyContent: 'flex-end',
+    padding: 30,
+  },
+  headerText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  underline: {
+    height: 4,
+    width: 60,
+    backgroundColor: '#fff',
+    marginTop: 8,
+    borderRadius: 2,
+  },
+  form: {
+    padding: 30,
+    marginTop: 20,
+  },
+  label: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 5,
+    marginTop: 20,
+  },
+  options: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 25,
+  },
+  signupText: {
+    fontSize: 13,
+    color: '#333',
+  },
+});

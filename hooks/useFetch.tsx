@@ -26,13 +26,13 @@ const useFetch = <T,>({
   showMessage = true,
   ...rest
 }: IProps<T>) => {
-  const { session, signOut } = useSession();
+  const { access_token, signOut } = useSession();
 
   const { data, error, isLoading, isSuccess, isError, isFetching, refetch, fetchStatus } = useQuery(
     {
       queryKey: key,
       enabled: typeof enabled === 'undefined' ? true : !!enabled,
-      queryFn: () => (requireAuth ? api(session, param) : api(param)),
+      queryFn: () => (requireAuth ? api(access_token, param) : api(param)),
       select: select || ((d: any): T => d?.data),
       ...rest,
     },
