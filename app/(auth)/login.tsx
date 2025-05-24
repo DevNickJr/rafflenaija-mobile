@@ -3,13 +3,14 @@ import InputField from '@/components/AuthInput';
 import AuthLink from '@/components/AuthLink';
 import Checkbox from '@/components/Checkbox';
 import WaveUI from '@/components/WaveUi';
+import { Colors } from '@/constants/Colors';
 import useMutate from '@/hooks/useMutation';
 import { ILoginReducerAction, ILoginResponse, IResponseData, IUserLogin } from '@/interfaces';
 import { useSession } from '@/providers/SessionProvider';
 import { apiLogin } from '@/services/AuthService';
 import { router } from 'expo-router';
 import React, { useReducer, useState } from 'react';
-import { StatusBar, Text, View, StyleSheet } from 'react-native';
+import { StatusBar, Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 
@@ -76,9 +77,23 @@ export default function Login() {
     if (!user.phone_number) {
       Toast.show({
         type: 'info',
-        text1: 'Phone number cannot be empty',
-      });
-      return;
+        text1: "Phone number cannot be empty",
+      })
+      return
+    }
+    if (user.phone_number.length !== 11) {
+      Toast.show({
+        type: 'info',
+        text1: "Phone number must be 11 digits",
+      })
+      return
+    }
+    if (user.phone_number[0] != "0") {
+      Toast.show({
+        type: 'info',
+        text1: "Phone number must start with 0",
+    })
+      return
     }
     if (!user.password) {
       Toast.show({
@@ -86,6 +101,13 @@ export default function Login() {
         text1: 'Password cannot be empty',
       });
       return;
+    }
+    if (user.password.length < 8) {
+      Toast.show({
+        type: 'info',
+        text1: "Password incorrect",
+      })
+      return
     }
 
     loginMutation.mutate(user);
@@ -131,48 +153,62 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.light.primary} />
 
       <WaveUI underlineTxt="Sign" restTxt="in" />
+      <ScrollView>
+        <View style={styles.form}>
+          <Text style={styles.label}>Phone Number</Text>
+          <InputField
+            icon="call-outline"
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+            maxLength={11}
+            numbersOnly
+            value={user?.phone_number}
+            onChangeText={(value) => dispatch({ type: 'phone_number', payload: value })}
+            // value={phoneNumber}
+            // onChangeText={setPhoneNumber}
+          />
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Phone Number</Text>
-        <InputField
-          icon="call-outline"
-          placeholder="Enter your phone number"
-          keyboardType="phone-pad"
-          maxLength={11}
-          numbersOnly
-          value={user?.phone_number}
-          onChangeText={(value) => dispatch({ type: 'phone_number', payload: value })}
-          // value={phoneNumber}
-          // onChangeText={setPhoneNumber}
-        />
+          <Text style={styles.label}>Password</Text>
+          <InputField
+            icon="lock-closed-outline"
+            placeholder="Enter your password"
+            secureTextEntry
+            value={user?.password}
+            onChangeText={(value) => dispatch({ type: 'password', payload: value })}
+            // onChangeText={setPassword}
+            // value={password}
+          />
 
-        <Text style={styles.label}>Password</Text>
-        <InputField
-          icon="lock-closed-outline"
-          placeholder="Enter your password"
-          secureTextEntry
-          value={user?.password}
-          onChangeText={(value) => dispatch({ type: 'password', payload: value })}
-          // onChangeText={setPassword}
-          // value={password}
-        />
+          <View style={styles.options}>
+            <Checkbox label="Remember Me" isChecked={isChecked} setChecked={setChecked} />
+            <AuthLink label="Forgot Password?" onPress={() => router.navigate('/(auth)/phone')} />
+          </View>
 
-        <View style={styles.options}>
-          <Checkbox label="Remember Me" isChecked={isChecked} setChecked={setChecked} />
-          <AuthLink label="Forgot Password?" onPress={() => router.navigate('/(auth)/phone')} />
+          {loginMutation?.isPending ?
+              <View style={{
+                flex: 1, 
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderRadius: 10,
+                marginTop: 12,
+              }}>
+                <ActivityIndicator size="large" color={Colors.light.primary} />
+              </View>
+              :
+          <AuthButton title="Login" onPress={login} />
+          }
+          {/* <AuthButton title="Login" onPress={() => login(user)} /> */}
+
+          <TouchableOpacity onPress={() => router.navigate('/(auth)/register')} style={styles.signupContainer}>
+            <Text style={styles.signupText}>Don’t have an Account?</Text>
+            <AuthLink label=" Sign up" onPress={() => router.navigate('/(auth)/register')} />
+          </TouchableOpacity>
         </View>
-
-        <AuthButton title="Login" onPress={login} />
-        {/* <AuthButton title="Login" onPress={() => login(user)} /> */}
-
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Don’t have an Account?</Text>
-          <AuthLink label=" Sign up" onPress={() => router.navigate('/(auth)/register')} />
-        </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -205,12 +241,13 @@ const styles = StyleSheet.create({
   form: {
     padding: 30,
     marginTop: 20,
+    paddingBottom: 25
   },
   label: {
     fontSize: 14,
     color: '#333',
-    marginBottom: 5,
-    marginTop: 20,
+    marginBottom: 4,
+    marginTop: 18,
   },
   options: {
     flexDirection: 'row',
@@ -221,7 +258,7 @@ const styles = StyleSheet.create({
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 25,
+    marginTop: 20,
   },
   signupText: {
     fontSize: 13,

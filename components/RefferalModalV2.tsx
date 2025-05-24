@@ -14,8 +14,10 @@ import {
 import NumberInput from './NumberInput';
 import OtpBackend from './OtpBackend';
 import DropDownScroll from './DropDownScroll';
-import { IBank } from '@/interfaces';
+import { IBank, IBankAccount, IResponseData } from '@/interfaces';
 import { dummyBanks } from '@/constants/dummyBanks';
+import { apiGetUserBankAccounts } from '@/services/WalletService';
+import useFetch from '@/hooks/useFetch';
 
 const TOTAL_AMOUNT = 2800;
 
@@ -43,6 +45,18 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
   const [otp, setOtp] = useState('');
   const [pinReady, setPinReady] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { data: accounts, refetch, isLoading } = useFetch<IResponseData<IBankAccount[]>>({
+    api: apiGetUserBankAccounts,
+    key: ["bank-accounts"],
+    requireAuth: true
+  })
+
+  // const { data: banks } = useFetch<IResponseData<IBank[]>>({
+  //     api: apiGetSupportedBanks,
+  //     key: ["banks"],
+  //     requireAuth: true
+  // })
 
   const resetState = () => {
     setCurrentTab('Withdraw Referral Funds');
@@ -144,28 +158,33 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
                 <Text style={styles.amount}>Total Amount Earned: NGN {TOTAL_AMOUNT}</Text>
 
                 <Text style={styles.banksec}>Select Account to send to</Text>
-                {bankList.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.bankCard}
-                    onPress={() => optionPick('bank', item.id)}
-                  >
-                    <View style={styles.radioCircle}>
-                      {selectedBankId === item.id && <View style={styles.selectedDot} />}
-                    </View>
-                    <View style={styles.bankDet}>
-                      <Text>{item.name}</Text>
-                      <Text>{item.account}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                {
+                 !accounts?.data?.length ?
+                   <Text style={styles.banksec}>No accounts have been added. Add accounts from withdraw page to proceed</Text>
+                 : 
+                  accounts?.data.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.bankCard}
+                      onPress={() => optionPick('bank', item.recipient_code)}
+                    >
+                      <View style={styles.radioCircle}>
+                        {selectedBankId === item.recipient_code && <View style={styles.selectedDot} />}
+                      </View>
+                      <View style={styles.bankDet}>
+                        <Text>{item.bank_name}</Text>
+                        <Text>{item.account_number}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                }
 
-                <TouchableOpacity onPress={() => optionPick('main', 'newbank')} style={styles.otherOptions}>
+                {/* <TouchableOpacity onPress={() => optionPick('main', 'newbank')} style={styles.otherOptions}>
                   <View style={styles.radioCircle}>
                     {selectedOption === 'newbank' && <View style={styles.selectedDot} />}
                   </View>
                   <Text>Add a new bank account</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 {selectedOption === 'newbank' && (
                   <View style={{ paddingLeft: 20 }}>
@@ -187,12 +206,12 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
                   </View>
                 )}
 
-                <TouchableOpacity onPress={() => optionPick('main', 'wtrfna')} style={styles.otherOptions}>
+                {/* <TouchableOpacity onPress={() => optionPick('main', 'wtrfna')} style={styles.otherOptions}>
                   <View style={styles.radioCircle}>
                     {selectedOption === 'wtrfna' && <View style={styles.selectedDot} />}
                   </View>
                   <Text>Withdraw to Raffle Naija account</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             )}
 
@@ -274,7 +293,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     innerContent: {
-        width: 300,
+        width: '100%',
         gap:6
     },
     mainViewWrapper:{

@@ -1,26 +1,75 @@
-import { View, Text, StyleSheet, StatusBar } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
+import React, { useReducer, useState } from 'react';
 import { useLocalSearchParams, router } from 'expo-router';
 import WaveUI from '@/components/WaveUi';
 import InputField from '@/components/AuthInput';
 import AuthButton from '@/components/AuthButton';
+import { IPasswordReset, IPasswordResetAction, IResponseData } from '@/interfaces';
+import useMutate from '@/hooks/useMutation';
+import { apiPasswordReset } from '@/services/AuthService';
+import Toast from 'react-native-toast-message';
+import { Colors } from '@/constants/Colors';
+
+const initialState: IPasswordReset = {
+  phone_number: '',
+  new_password: "",
+  confirm_password: ""
+}
 
 const ResetPassword = () => {
   const { phone } = useLocalSearchParams<{ phone: string }>();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
 
-  const onReset = () => {
-    if (password !== confirm) {
-      alert("Passwords don't match");
-      return;
+  
+  const [user, dispatch] = useReducer((state: IPasswordReset, action: IPasswordResetAction) => {
+    if (action.type === "reset") {
+      return initialState
     }
+    return { ...state, [action.type]: action.payload }
+  }, initialState)
+      
+  const resetPasswordMutation = useMutate<IPasswordReset, any>(
+      apiPasswordReset,
+      {
+        onSuccess: (data: IResponseData<"">) => {
+            console.log("data", data)
+              dispatch({ type: "reset", payload: "" })   
+              Toast.show({
+                type: 'success',
+                text1: "Password Reset Successfull",
+              })
+              router.replace('/(auth)/login');
+        },
+        showErrorMessage: true,
+      }
+    )
 
-    // Submit reset with phone and password
-
-    // Navigate back to login
-    router.replace('/(auth)/login');
-  };
+  const handleSubmit = () => {
+    if (!user.phone_number && !phone) {
+      return Toast.show({
+        type: 'info',
+        text1: "Phone Number isn't provided"
+      })
+    }
+    if (!user.new_password || !user?.confirm_password) {
+      return Toast.show({
+        type: 'info',
+        text1: "Fill all fields"
+      })
+    }
+    if (user.new_password !== user?.confirm_password) {
+      return Toast.show({
+        type: 'info',
+        text1: "Passwords do not match"
+      })
+    }
+    resetPasswordMutation.mutate({
+      phone_number: phone || user?.phone_number,
+      new_password: user?.new_password,
+      confirm_password: user?.confirm_password
+    })
+  }
 
   return (
     <View style={styles.container}>
@@ -34,8 +83,8 @@ const ResetPassword = () => {
           icon="lock-closed-outline"
           placeholder="Enter new password"
           secureTextEntry
-          value={password}
-          onChangeText={setPassword}
+          value={user?.new_password}
+          onChangeText={(value) => dispatch({ type: "new_password", payload: value})}
         />
 
         <Text style={styles.label}>Confirm Password</Text>
@@ -43,11 +92,23 @@ const ResetPassword = () => {
           icon="lock-closed-outline"
           placeholder="Confirm new password"
           secureTextEntry
-          value={confirm}
-          onChangeText={setConfirm}
+          value={user?.confirm_password}
+          onChangeText={(value) => dispatch({ type: "confirm_password", payload: value})}
         />
-
-        <AuthButton title="Reset Password" onPress={onReset} />
+           {resetPasswordMutation?.isPending ?
+              <View style={{
+                flex: 1, 
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderRadius: 10,
+                marginTop: 12,
+              }}>
+                <ActivityIndicator size="large" color={Colors.light.primary} />
+              </View>
+              :
+              <AuthButton title="Reset Password" onPress={handleSubmit} />
+          }
       </View>
     </View>
   );

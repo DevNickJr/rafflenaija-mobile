@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,17 @@ import {
   FlatList,
   Platform,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack } from 'expo-router';
+import { apiGetResults } from '@/services/GameService';
+import { IGameResult, IResponseData } from '@/interfaces';
+import useFetch from '@/hooks/useFetch';
+import { usePagination } from '@/hooks/usePagination';
+import { useSorting } from '@/hooks/useSorting';
+import { Colors } from '@/constants/Colors';
 
 const DATA = Array.from({ length: 20 }).map((_, i) => ({
   id: i.toString(),
@@ -26,21 +33,21 @@ const DATA = Array.from({ length: 20 }).map((_, i) => ({
   
 }));
 
-const GameRow = ({ item }: { item: typeof DATA[0] }) => (
+const GameRow = ({ item }: { item: IGameResult }) => (
   <View style={[styles.row, styles.won ]}>
     <View style={[styles.rowItem,styles.cell]}>
       <Text style={styles.label}>Game ID</Text>
-      <Text style={styles.value}>{item.gameId}</Text>
+      <Text style={styles.value}>{item.game_id}</Text>
     </View>
 
     <View style={[styles.rowItem,styles.cell]}>
       <Text style={styles.label}>Game Played</Text>
-      <Text style={styles.value}>{item.gamePlayed}</Text>
+      <Text style={styles.value}>{item.item_name}</Text>
     </View>
 
     <View style={[styles.rowItem,styles.cell]}>
-      <Text style={styles.label}>Game Played</Text>
-      <Text style={styles.value}>{item.phoneNumber}</Text>
+      <Text style={styles.label}>Phone Number</Text>
+      <Text style={styles.value}>{item.phone_number?.slice(0,3)}*****{item.phone_number?.slice(-3)}</Text>
     </View>
 
     <View style={[styles.rowItem,styles.cell]}>
@@ -50,7 +57,7 @@ const GameRow = ({ item }: { item: typeof DATA[0] }) => (
 
     <View style={[styles.rowItem,styles.cell]}>
       <Text style={styles.label}>Status</Text>
-      <Text style={[styles.value, item.status === 'Lost' ? styles.statusLost : styles.statusWon]}>{item.status}</Text>
+      <Text style={[styles.value, item.status === 'won' ? styles.statusWon : styles.statusLost]}>{item.status}</Text>
     </View>
 
     {/* <TouchableOpacity
@@ -63,22 +70,31 @@ const GameRow = ({ item }: { item: typeof DATA[0] }) => (
 
 const GameResults=()=> {
   const [activeTab, setActiveTab] = useState(0);
-  const [page, setPage] = useState(1);
   const [searchTxt, setSearchTxt] = useState("")
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const itemsPerPage = 6;
-  const pageCount = Math.ceil(DATA.length / itemsPerPage);
-  const paginatedData = DATA.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-
-  // const Toptabs =["All Games","Finished","On-Going"]
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) setDate(selectedDate);
   };
 
+  const dateRef = useRef<null | HTMLInputElement>(null)
+    
+  const { limit, onPaginationChange, page, pagination } = usePagination();
+  const { sorting, onSortingChange, field, order } = useSorting();
+
+  const { data: results, isLoading } = useFetch<IResponseData<IGameResult[]>>({
+      api: apiGetResults,
+      key: ["game-results", String(pagination.pageIndex)],
+      param: {
+          page: pagination.pageIndex + 1,
+          // type: activeTab
+      },
+      // requireAuth: true
+  })
+  
   return (
     <>
     <Stack.Screen
@@ -87,12 +103,12 @@ const GameResults=()=> {
       }}
     />
     {/* <SafeAreaView style={{flex:1, backgroundColor:"#fff"}}> */}
-      <View style={[styles.container,{paddingTop: Platform.OS==="android"?10:0, paddingBottom: Platform.OS==="android"?0:40}]}>
+      <View style={styles.container}>
         {/* <Text style={styles.header}>Games Result</Text> */}
 
         
 
-        <Text style={styles.timestamp}>21/12/2023 10:20pm</Text>
+        {/* <Text style={styles.timestamp}>21/12/2023 10:20pm</Text> */}
         
         {/* Date and search input */}
         <View style={styles.searchFilterRow}>
@@ -124,22 +140,41 @@ const GameResults=()=> {
 
         <ScrollView horizontal>
           <ScrollView style={{ width: '100%' }}>
-            {paginatedData.map(item => (
-              <GameRow item={item} key={item.id} />
+              {
+                (!results?.data || !results?.data?.length)
+                ? 
+                <View style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginVertical: 20
+                }} className='text-center'>
+                  {
+                  isLoading ? 
+                    <ActivityIndicator size="large" color={Colors.light.primary} />
+                    :
+                    <Text>No result</Text>
+                  }
+              
+                </View>
+                :
+              results?.data?.map(item => (
+              <GameRow item={item} key={item.game_id} />
             ))}
           </ScrollView>
         </ScrollView>
-
-        <Pagination
-          totalItems={pageCount * 5}
-          pageSize={pageCount}
-          currentPage={page}
-          onPageChange={setPage}
-          activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
-          activeTextStyle={{color:"#fff"}}
-          btnStyle={{backgroundColor:"trasparent"}}
-          textStyle={{color:"black"}}
-        />
+        {
+            Number(results?.count || 0) > limit &&
+              <Pagination
+                totalItems={Number(results?.count || 0)}
+                pageSize={limit}
+                currentPage={page}
+                onPageChange={onPaginationChange}
+                activeBtnStyle={{backgroundColor:'#449444', borderWidth:0, borderRadius:4}}
+                activeTextStyle={{color:"#fff"}}
+                btnStyle={{backgroundColor:"trasparent"}}
+                textStyle={{color:"black"}}
+              />
+            }
       </View>
     {/* </SafeAreaView> */}
     </>
@@ -148,9 +183,8 @@ const GameResults=()=> {
 export default GameResults;
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    // paddingHorizontal:20,
     flex: 1,
+    padding: 16,
     backgroundColor: '#fff',
   },
   header: {
@@ -213,6 +247,7 @@ const styles = StyleSheet.create({
   },
   rowItem: {
     marginBottom: 5,
+    width: 150
   },
   label: {
     fontSize: 12,
