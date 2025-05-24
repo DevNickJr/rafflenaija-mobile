@@ -26,9 +26,6 @@ interface IProps {
 }
 
 const RaffleModal = ({ visible, onClose, refetchUser, refetchGames, raffle }: IProps) => {
-  const [amount, setAmount] = useState('');
-//   const [loading, setLoading] = useState(false);
-
   const context = useSession()
 
   const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {

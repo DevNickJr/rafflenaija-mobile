@@ -64,7 +64,7 @@ export default function RootLayout() {
           </SessionProvider>
           {/* <StatusBar style="auto" /> */}
           <Toast
-            topOffset={50}
+            topOffset={30}
             visibilityTime={2000}
             autoHide
           />
