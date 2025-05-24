@@ -23,7 +23,7 @@ import { IBanner, ICategory, IGame, IResponseData, ITicket } from '@/interfaces'
 import useFetch from '@/hooks/useFetch';
 import { apiGetCategories, apiGetGames } from '@/services/GameService';
 import { apiGetBannerItems } from '@/services/AdminService';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import ModalComponent from '@/components/ModalComponent';
 
 const { width } = Dimensions.get('screen');
@@ -265,8 +265,15 @@ const HomeScreen = () => {
                  {/* Random Select Row */}
                 <View style={styles.randomRow}>
                   <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
-                  <TouchableOpacity style={styles.randomBtn}>
+                  {/* <TouchableOpacity style={styles.randomBtn}>
                     <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+                  </TouchableOpacity> */}
+                  <TouchableOpacity 
+                    style={{flexDirection:"row",gap:4,alignItems:"center"}}
+                    onPress={()=>setShowImageModal(true)}
+                  >
+                    <Entypo name="camera" size={24} color="#449444" />
+                    <Text style={{color:"#449444", fontSize:16,fontWeight:"600"}}>View Item Image</Text>
                   </TouchableOpacity>
                 </View>            
                 {
