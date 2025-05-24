@@ -14,12 +14,13 @@ import {
 import NumberInput from './NumberInput';
 import OtpBackend from './OtpBackend';
 import DropDownScroll from './DropDownScroll';
-import { IBank, IBankAccount, IResponseData } from '@/interfaces';
+import { IBank, IBankAccount, IReferralWithdraw, IResponseData } from '@/interfaces';
 import { dummyBanks } from '@/constants/dummyBanks';
 import { apiGetUserBankAccounts } from '@/services/WalletService';
 import useFetch from '@/hooks/useFetch';
-
-const TOTAL_AMOUNT = 2800;
+import { apiReferral, apiWithdrawReferralFunds } from '@/services/ReferralService';
+import useMutate from '@/hooks/useMutation';
+import Toast from 'react-native-toast-message';
 
 type Props = {
   visible: boolean;
@@ -35,13 +36,21 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
     { id: '2', name: 'Access Bank', account: '52*****143' }
   ]);
 
+       
+  const { data: referral } = useFetch({
+    api: apiReferral,
+    select: ((d: any) => d?.data?.data),
+    key: ["referral"],
+    requireAuth: true
+})
+
   const [banks, setBanks] = useState<IBank[]>([...dummyBanks]);
   const [selectedBankId, setSelectedBankId] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
   const [optionType, setOptionType] = useState('');
   const [selectedBank, setSelectedBank] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(0);
   const [otp, setOtp] = useState('');
   const [pinReady, setPinReady] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -64,10 +73,34 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
     setSelectedOption('');
     setSelectedBank('');
     setAccountNumber('');
-    setAmount('');
+    setAmount(0);
     setOtp('');
     setPinReady(false);
   };
+
+  const withdrawMutation = useMutate<IReferralWithdraw, IResponseData<"">>(
+    apiWithdrawReferralFunds,
+    {
+      onSuccess: (data: IResponseData<"">) => {
+          console.log("data", data)
+          setAmount(0);
+          Toast.show({
+              type: "success",
+              text1: data.message || "Operation Successful"
+          })
+          return
+      },
+      showErrorMessage: true,
+    }
+)
+
+
+const handleWithdraw = () => {
+    return withdrawMutation.mutate({
+        amount,
+    })
+}   
+
 
   const handleProceed = () => {
     switch (currentTab) {
@@ -81,11 +114,7 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
         }
         break;
       case 'Enter Amount':
-        if (parseFloat(amount) <= TOTAL_AMOUNT) {
-          setCurrentTab('OTP Verification');
-        } else {
-          Alert.alert('Amount exceeds available balance');
-        }
+        handleWithdraw();
         break;
       case 'OTP Verification':
         if (pinReady && otp.length === 4) {
@@ -102,7 +131,7 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
         }
         break;
       case 'Enter Amount Raffle':
-        if (amount && parseFloat(amount) <= TOTAL_AMOUNT) {
+        if (amount && parseFloat(amount?.toString()) <= referral?.wallet?.balance) {
           setLoading(true);
           setTimeout(() => {
             setLoading(false);
@@ -155,7 +184,7 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
               <View style={styles.mainViewWrapper}>
                 <Text style={styles.title}>Withdraw Referral Funds</Text>
                 <Text style={styles.description}>Withdraw your referral funds from Raffle Naija</Text>
-                <Text style={styles.amount}>Total Amount Earned: NGN {TOTAL_AMOUNT}</Text>
+                <Text style={styles.amount}>Total Amount Earned: NGN {referral?.wallet?.balance}</Text>
 
                 <Text style={styles.banksec}>Select Account to send to</Text>
                 {
@@ -172,7 +201,7 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
                         {selectedBankId === item.recipient_code && <View style={styles.selectedDot} />}
                       </View>
                       <View style={styles.bankDet}>
-                        <Text>{item.bank_name}</Text>
+                        <Text>{item.bank_name?.slice(0,25)} {item.bank_name?.length > 24 && '...'}</Text>
                         <Text>{item.account_number}</Text>
                       </View>
                     </TouchableOpacity>
@@ -220,9 +249,10 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
                 <Text style={styles.title}>Enter Amount</Text>
                 <Text style={styles.description}>Enter the amount to withdraw</Text>
                 <NumberInput
-                  label="Amount in NGN"
-                  value={amount}
-                  onChange={setAmount}
+                  label="Enter Amount"
+                  value={amount ? String(amount) : ''}
+                  onChange={(value) => setAmount(Number(value))}
+                  placeholder={''}
                 />
               </View>
             )}
@@ -240,7 +270,7 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
               </View>
             )}
 
-            {currentTab === 'Enter Amount Raffle' && (
+            {/* {currentTab === 'Enter Amount Raffle' && (
               <View style={styles.enterAmtWrapper}>
                 <Text style={styles.title}>Withdraw to Raffle Naija</Text>
                 <NumberInput
@@ -254,7 +284,7 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
                   onChange={setAmount}
                 />
               </View>
-            )}
+            )} */}
 
             {loading ? (
               <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />

@@ -119,6 +119,28 @@ const Withdraw = () => {
       }
   )
 
+  const handleAddBank = () => {
+      if (!addBank.bank_code || !addBank.account_number || !addBank.bank_name) {
+          return Toast.show({
+              type: "info",
+              text1: "Incomplete"
+          })
+      }
+      if (addBank.account_number.length < 10) {
+          return Toast.show({
+              type: "info",
+              text1: "Account Number must be 10 digits"
+          })
+      }
+      if (!verifyBankMutation.isSuccess) {
+          return Toast.show({
+              type: "info",
+              text1: "Failed to verify bank account"
+          })   
+      }
+      addBankMutation.mutate(addBank)
+  }
+
   const verifyBankMutation = useMutate<IVerifyBank, IResponseData<IVerifyBankResponse>>(
       apiVerifyBankAccount,
       {
@@ -288,8 +310,17 @@ const Withdraw = () => {
                         </TouchableOpacity>
                         {/* <Image source={Logo} style={styles.logo} /> */}
                         <Text style={styles.bankName}>{item.bank_name}</Text>
-                        <Text style={styles.accountNumber}>****{item.account_number.slice(6)}</Text>
-                        <TouchableOpacity onPress={() => alert('Simulated delete')}>
+                        <Text style={styles.accountNumber}>
+                          {
+                            deleteBankMutation?.isPending && item.id === deleteAccountId? "Deleting..." : `****${item.account_number.slice(6)}`
+                          }
+                        </Text>
+                        <TouchableOpacity onPress={() => {
+                          setDeleteAccountId(item.id)
+                          deleteBankMutation.mutate({
+                            id: item.id
+                          })
+                        }}>
                           <Ionicons name="trash" size={20} color="red" />
                         </TouchableOpacity>
                       </View>
@@ -324,8 +355,15 @@ const Withdraw = () => {
                   {
                       (verifyBankMutation.isSuccess && addBank?.account_number.length===10) && <Text style={{ marginTop: 4, color: Colors.light.primary }}>{verifyBankMutation.data.data.account_name}</Text>
                   }
-                  <TouchableOpacity onPress={() =>  addBankMutation.mutate(addBank)} style={styles.btn}>
-                    <Text style={styles.btnText}>Add Bank</Text>
+                  <TouchableOpacity onPress={handleAddBank} style={{ 
+                    ...styles.btn,
+                    ...(verifyBankMutation?.isPending && {
+                      backgroundColor: Colors.light.grayTxt,
+                    }),
+                  }}>
+                    <Text disabled={verifyBankMutation?.isPending} style={styles.btnText}>
+                      {verifyBankMutation?.isPending? "Verifying..." : "Add Account"}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ) :
@@ -339,7 +377,11 @@ const Withdraw = () => {
                   style={styles.input}
                 />
                 <TouchableOpacity onPress={handleWithdraw} style={styles.btn}>
-                  <Text style={styles.btnText}>Withdraw</Text>
+                  <Text style={styles.btnText}>
+                    {
+                      withdrawMutation?.isPending? "Processing..." : "Withdraw"
+                    }
+                  </Text>
                 </TouchableOpacity>
               </>}
             </View>

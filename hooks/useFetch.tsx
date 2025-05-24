@@ -3,6 +3,7 @@ import { QueryKey, useQuery } from '@tanstack/react-query';
 import axios, { AxiosResponse } from 'axios';
 import Toast from 'react-native-toast-message';
 import { useSession } from '@/providers/SessionProvider';
+import { apiRefreshToken } from '@/services/AuthService';
 
 interface IProps<T> {
   api: (a?: any, b?: any) => Promise<AxiosResponse<T, any>>;
@@ -26,7 +27,7 @@ const useFetch = <T,>({
   showMessage = true,
   ...rest
 }: IProps<T>) => {
-  const { access_token, signOut } = useSession();
+  const { access_token, signOut, refreshToken, refresh_token } = useSession();
 
   const { data, error, isLoading, isSuccess, isError, isFetching, refetch, fetchStatus } = useQuery(
     {
@@ -50,15 +51,32 @@ const useFetch = <T,>({
         const data: any = error?.response?.data;
         const message = data?.message;
         if (typeof message === 'string' && message === 'Token Expired') {
-          if (showMessage) {
-            // Using react-native-toast-message for toast notifications
-            Toast.show({
-              type: 'info',
-              text1: 'Token Expired',
-              text2: 'Log back in to access your account',
-            });
+          // Handle token expiration here
+          const handleRefresh = async () => {
+            try {
+              const refresh = await apiRefreshToken({ refresh: refresh_token || ''  })
+              console.log("refresh3", refresh?.data?.access)
+              if (refresh?.data?.access) {
+                refreshToken({
+                  access_token: refresh?.data?.access,
+                });
+                // signIn
+              } else {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Token Expired. Refresh Failed!',
+                });
+                return signOut();
+              }
+            } catch (error) {
+              Toast.show({
+                type: 'info',
+                text1: 'Token Expired. Refresh Failed!',
+              });
+              return signOut();
+            }
           }
-          signOut();
+          handleRefresh();
         }
       }
     }

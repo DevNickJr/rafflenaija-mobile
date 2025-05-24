@@ -107,11 +107,11 @@ const sampleData = Array.from({ length: 40 }).map((_, i) => ({
 
 const getStatusStyle = (status: string) => {
   switch (status) {
-    case 'Success':
+    case 'success':
       return styles.success;
-    case 'Pending':
+    case 'pending':
       return styles.pending;
-    case 'Failed':
+    case 'failed':
       return styles.failed;
     default:
       return {};
@@ -209,10 +209,10 @@ const Transaction = () => {
               <View style={[styles.row, styles.header]}>
                 <Text style={[styles.cell, styles.headerCell]}>Time</Text>
                 <Text style={[styles.cell, styles.headerCell]}>Transaction Type</Text>
-                <Text style={[styles.cell, styles.headerCell]}>Transaction ID</Text>
+                <Text style={[styles.cell, styles.headerCell, { width: 300 }]}>Transaction ID</Text>
                 <Text style={[styles.cell, styles.headerCell]}>Amount</Text>
-                <Text style={[styles.cell, styles.headerCell]}>Status</Text>
-                <Text style={[styles.cell, styles.headerCell]}>Details</Text>
+                <Text style={[styles.cell, styles.headerCell, { width: 70 }]}>Status</Text>
+                {/* <Text style={[styles.cell, styles.headerCell]}>Details</Text> */}
               </View>
               <ScrollView>
                 {
@@ -235,11 +235,13 @@ const Transaction = () => {
                   <View key={index} style={styles.row}>
                     <Text style={styles.cell}>{formatDate(item.created_at)}</Text>
                     <Text style={styles.cell}>{item.transaction_type}</Text>
-                    <Text style={styles.cell}>{item.id}</Text>
+                    <Text style={{ ...styles.cell, width: 300 }}>{item.id}</Text>
                     <Text style={styles.cell}>{item.amount}</Text>
-                    <Text style={[styles.cell, getStatusStyle(item.status)]}>
+                    <Text style={[styles.cell, getStatusStyle(item.status), { width: 70 }]}>
                       {item.status}
                     </Text>
+                    {/* <Text style={[styles.cell]}>
+                    </Text> */}
                     {/* <TouchableOpacity style={styles.cell}>
                       <Text style={{ color: 'green' }}>Details</Text>
                     </TouchableOpacity> */}
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
     },
     cell: {
-      minWidth: 150,
+      width: 120,
       paddingHorizontal: 8,
       fontSize: 14,
     },
@@ -339,6 +341,7 @@ const styles = StyleSheet.create({
       padding: 6,
       borderRadius: 8,
       textAlign: 'center',
+      fontWeight: 'bold',
     },
     pending: {
       color: '#b28704',
@@ -346,6 +349,7 @@ const styles = StyleSheet.create({
       padding: 6,
       borderRadius: 8,
       textAlign: 'center',
+      fontWeight: 'bold',
     },
     failed: {
       color: '#c62828',
@@ -353,8 +357,8 @@ const styles = StyleSheet.create({
       padding: 6,
       borderRadius: 8,
       textAlign: 'center',
+      fontWeight: 'bold',
     },
-   
     pageBtn: {
         paddingHorizontal: 10,
         paddingVertical: 5,

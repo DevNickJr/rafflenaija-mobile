@@ -18,6 +18,7 @@ import { apiUpdateUser, apiVerifyEmail } from '@/services/AuthService';
 import Toast from 'react-native-toast-message';
 import useMutate from '@/hooks/useMutation';
 import BackButton from '@/components/BackButton';
+import VerifyAccountEmail from '@/components/VerifyAccountEmail';
 
 const genderOptions = ['Male', 'Female'];
 
@@ -133,12 +134,14 @@ const AccountInfoScreen = () => {
       requireAuth: true
     }
   )
+  const [verifyModalisOpen, setVerifyModalOpen] = useState(false)
 
   const verifyEmail = useMutate<IEmail, any>(
     apiVerifyEmail,
     {
       onSuccess: (data: IResponseData<IUser>) => {
-        // setVerifyModalOpen(true)
+
+        setVerifyModalOpen(true)
       },
       showErrorMessage: true,
       requireAuth: true
@@ -199,6 +202,11 @@ const AccountInfoScreen = () => {
           title: 'Account Info',
         }}
       />
+      <VerifyAccountEmail
+        visible={verifyModalisOpen}
+        onClose={() => setVerifyModalOpen(false)}
+        onOk={() => setVerifyModalOpen(false)}
+      />
       <ScrollView contentContainerStyle={styles.container}>
         {/* <BackButton label="Account Info" /> */}
         {/* <Text style={styles.title}></Text> */}
@@ -233,7 +241,7 @@ const AccountInfoScreen = () => {
                 marginBottom: 0,
               }}
               label="Email Address"
-              editable={true}
+              editable={!context?.is_verified || !user.email}
               keyboardType={'email-address'}
               // value={userInfo.email}
               // onChangeText={(text) => handleChange('email', text)}
@@ -241,9 +249,12 @@ const AccountInfoScreen = () => {
               onChangeText={(text) => dispatch({ type: "email", payload: text })}
             />
           </View>
-          <Pressable style={styles.verifyButton} onPress={handleVerifyEmail}>
-            <Text style={styles.verifyText}>Verify</Text>
-          </Pressable>
+          {
+            (!context?.is_verified && user.email && context?.email) &&
+            <Pressable style={styles.verifyButton} onPress={handleVerifyEmail}>
+              <Text style={styles.verifyText}>{verifyEmail.isPending ? "Processing.." : "Verify"}</Text>
+            </Pressable>
+          }
         </View>
         <View style={{ marginBottom: 16 }}>
           <Text style={{ fontSize: 14,marginBottom: 6, color: '#333' }}>Date of Birth</Text>
@@ -304,7 +315,9 @@ const AccountInfoScreen = () => {
         </View>
 
         <TouchableOpacity style={styles.saveButton} onPress={handleUserUpdate}>
-          <Text style={styles.saveText}>Save Changes</Text>
+          <Text style={styles.saveText}>{
+            updateUserMutation.isPending ? "Updating..." : "Save Changes"
+          }</Text>
         </TouchableOpacity>
       </ScrollView>
     </>

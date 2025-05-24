@@ -8,7 +8,7 @@ import { IPic, IResponseData, IUser } from '@/interfaces';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 
-const UserIdCard = () => {
+const AccountUser = () => {
   const context = useSession()
   const updatePicMutation = useMutate<IPic, any>(
       apiUpdatePic,
@@ -79,41 +79,66 @@ const UserIdCard = () => {
 
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={pickImage}>
-        <Image  style={styles.userImg} src={context?.profile_picture || ''} />
-      </TouchableOpacity>
-      <View>
-        <Text style={styles.txtStyle}>{context?.phone_number}</Text>
-
-        <View style={styles.balanceContainer}>
-          <Text style={[styles.txtStyle, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
-            {showBalance ? 
-            <>
-            NGN {context?.wallet_balance}
-            </>
-            : 
-            '****'}
-          </Text>
-
-          <TouchableOpacity onPress={() => setShowBalance(prev => !prev)}>
-            <Icon name={showBalance ? 'eye' : 'eye-off'} size={16} color="#000" />
-          </TouchableOpacity>
+    <View style={styles.closure}>
+        <View style={styles.profileHeader}>
+            <Text style={styles.headerText}>Account</Text>
+            <TouchableOpacity onPress={pickImage}>
+                <Image  style={styles.userImg} src={context?.profile_picture || ''} />
+            </TouchableOpacity>
         </View>
-      </View>
+        <View style={styles.container}>
+            <View>
+                <View style={{ gap: 10, flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.txtStyle}>Total Balance</Text>
+                    <TouchableOpacity onPress={() => setShowBalance(prev => !prev)}>
+                    <Icon name={showBalance ? 'eye' : 'eye-off'} size={16} color="#000" />
+                </TouchableOpacity>
+            </View>
+            {/* <Text style={styles.txtStyle}>{context?.phone_number}</Text> */}
+            <View style={styles.balanceContainer}>
+                <Text style={[{ flex: 1, fontSize: 30 }]} numberOfLines={1} ellipsizeMode="tail">
+                    {showBalance ? 
+                    <>
+                    ₦{Number(context?.wallet_balance)?.toFixed(2)}
+                    </>
+                    : 
+                    '****'}
+                </Text>
+
+        
+            </View>
+        </View>
+        </View>
     </View>
   );
 };
 
-export default UserIdCard;
+export default AccountUser;
 
 const styles = StyleSheet.create({
+  closure: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    marginBottom: 15,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center', gap: 20,
+    // paddingHorizontal: 20,
+    // backgroundColor: '#fff',
+    marginBottom: 5,
+  },
+  headerText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     // backgroundColor: 'gray',
-    padding: 8,
+    // padding: 8,
   },
   userImg: {
     width: 40,

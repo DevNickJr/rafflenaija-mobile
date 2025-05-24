@@ -23,6 +23,10 @@ export interface IUserLogin {
   password: string;
 }
 
+export interface IRefresh {
+  refresh: string;
+}
+
 export interface ILoginReducerAction
   extends IReducerAction<'password' | 'phone_number' | 'reset'> {}
 
@@ -355,6 +359,7 @@ export interface IWithdraw {
   // bank_account_id: string
   recipient_code: string;
 }
+
 export interface ITransfer {
   amount: number;
   recipient_phone: string;

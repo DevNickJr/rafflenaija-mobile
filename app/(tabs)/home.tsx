@@ -30,6 +30,7 @@ import RaffleModal from '@/components/RaffleModal';
 import { useSession } from '@/providers/SessionProvider';
 import { apiGetUser } from '@/services/AuthService';
 import Toast from 'react-native-toast-message';
+import Profile from '@/components/Profile';
 
 const { width } = Dimensions.get('screen');
 const NUM_CARDS = 5;
@@ -80,7 +81,7 @@ const HomeScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
 
   // Modal Details
-  const [showImageModal, setShowImageModal]=useState(false)
+  const [showImageModal, setShowImageModal]=useState(true)
   const [modalImgIdx, setModalImgIdx]=useState(0)
   const [showNotifyModal, setShowNotifyModal]=useState(false)
   
@@ -149,8 +150,8 @@ const HomeScreen = () => {
   }, []);
 
   const getItemLayout = (_: any, index: number) => ({
-    length: width - 40,
-    offset: (width - 40) * index,
+    length: width,
+    offset: (width) * index,
     index,
   });
 
@@ -168,7 +169,7 @@ const HomeScreen = () => {
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (width - 40));
+    const index = Math.round(scrollPosition / (width));
     setActiveDot(index);
   };
 
@@ -192,7 +193,7 @@ const HomeScreen = () => {
   const renderBannerItem: ListRenderItem<IBanner> = ({ item }) => (
     <Image
       src={item.image}
-      style={{ width: width - 40, height: 210, borderRadius: 10 }}
+      style={{ width: width, height: 210, borderRadius: 10 }}
       resizeMode="stretch"
     />
   );
@@ -244,10 +245,7 @@ const HomeScreen = () => {
 
   const renderHeader = () => (
     <View style={{ backgroundColor: '#f4f7f9', paddingHorizontal: 10 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 20 }}>
-        <Image source={require('@/assets/images/homelogo.png')} style={{ width: 40, height: 40 }} />
-        <UserIdCard />
-      </View>
+      <Profile />
 
       {/* Categories */}
       <FlatList

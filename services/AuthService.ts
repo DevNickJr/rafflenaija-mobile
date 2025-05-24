@@ -12,6 +12,7 @@ import {
   IDuration,
   IEmail,
   IOTP,
+  IRefresh,
 } from '@/interfaces';
 import BaseService from './BaseService';
 
@@ -26,6 +27,10 @@ const Auth = (token: string, data?: any) => ({
 
 export const apiLogin = (data: IUserLogin) => {
   return BaseService.post(`${servicePrefix}/login/`, data);
+};
+
+export const apiRefreshToken = (data: IRefresh) => {
+  return BaseService.post(`${servicePrefix}/token/refresh`, data);
 };
 
 export const apiRegister = (data: IUserRegister) => {

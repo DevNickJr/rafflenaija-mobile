@@ -82,14 +82,14 @@ const RaffleModal = ({ visible, onClose, refetchUser, refetchGames, raffle }: IP
         <View style={styles.modalContent}>
           <ScrollView contentContainerStyle={styles.innerContent}>
             <View style={styles.enterAmtWrapper}>
-            <Text style={styles.title}>Are you sure you want to raffle the card?</Text>
-            <Text style={styles.description}>You are about to pay to raffle the card</Text>
-            <Text style={styles.amount}>₦{raffle?.price}</Text>
-            {/* <NumberInput
-                label="Amount in NGN"
-                value={amount}
-                onChange={setAmount}
-            /> */}
+              <Text style={styles.title}>Are you sure you want to raffle the card?</Text>
+              <Text style={styles.description}>You are about to pay to raffle the card</Text>
+              <Text style={styles.amount}>₦{raffle?.price}</Text>
+              {/* <NumberInput
+                  label="Amount in NGN"
+                  value={amount}
+                  onChange={setAmount}
+              /> */}
             </View>
             {purchaseMutation?.isPending ? (
               <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
