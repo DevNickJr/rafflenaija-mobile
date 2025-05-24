@@ -20,7 +20,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import UserIdCard from '@/components/UserIdCard';
 import { Colors } from '@/constants/Colors';
 import { SafeView } from '@/components/SafeView';
-import { IBanner, ICategory, IGame, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
+import { IBanner, ICategory, IGame, IImage, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
 import useFetch from '@/hooks/useFetch';
 import { apiGetCategories, apiGetGames } from '@/services/GameService';
 import { apiGetBannerItems } from '@/services/AdminService';
@@ -46,11 +46,11 @@ interface IBannerV2 {
   image: ImageSourcePropType;
 }
 
-const slideImages: IBannerV2[] = [
-  { id: 1, image: require('@/assets/images/favicon.png') },
-  { id: 2, image: require('@/assets/images/react-logo.png') },
-  { id: 3, image: require('@/assets/images/homelogo.png') },
-];
+// const slideImages: IBannerV2[] = [
+//   { id: 1, image: require('@/assets/images/favicon.png') },
+//   { id: 2, image: require('@/assets/images/react-logo.png') },
+//   { id: 3, image: require('@/assets/images/homelogo.png') },
+// ];
 
 // const categories = [
 //   'Powerbank',
@@ -166,7 +166,13 @@ const HomeScreen = () => {
     }
     setTicket({ code, price })
   }
+  const [images, setImages] = useState<IImage[]>([])
 
+
+  const handleOpenImageModal = (images: IImage[]) => {
+    setImages(images)
+    setShowImageModal(true)
+  }
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
     const index = Math.round(scrollPosition / (width));
@@ -314,7 +320,7 @@ const HomeScreen = () => {
                   </TouchableOpacity> */}
                   <TouchableOpacity 
                     style={{flexDirection:"row",gap:4,alignItems:"center"}}
-                    onPress={()=>setShowImageModal(true)}
+                    onPress={()=>handleOpenImageModal(game?.images)}
                   >
                     <Entypo name="camera" size={24} color="#449444" />
                     <Text style={{color:"#449444", fontSize:16,fontWeight:"600"}}>View Item Image</Text>
@@ -359,6 +365,7 @@ const HomeScreen = () => {
           visible={showImageModal}
           onRequestClose={() => {
             // Alert.alert('Modal has been closed.');
+            setImages([])
             setShowImageModal(false);
           }}>
           <View style={styles.modalContainer}>
@@ -366,27 +373,29 @@ const HomeScreen = () => {
             <View style={styles.modalTopNNav}>
               <TouchableOpacity 
                 // style={styles.modalImgBtn}
-                onPress={()=>setShowImageModal(false)}
+                onPress={()=> {
+                  setImages([])
+                  setShowImageModal(false)
+                }}
               >
                 <Ionicons name="close" size={30} color="#fff" />
               </TouchableOpacity>
             </View>
             <View style={styles.modalInnerWrapper}>
               <Image 
-                source={slideImages[modalImgIdx].image}
+                source={{ uri: images[modalImgIdx].image_url }}
                 style={{width:300, height:350,}}
                 resizeMode="stretch"
               />
-
               <View style={{flexDirection:"row", gap:6, justifyContent:"center"}}>
                 {
-                  slideImages.map((item, idx)=>(
+                  images?.map((item, idx)=>(
                     <TouchableOpacity 
-                      key={idx} onPress={()=>setModalImgIdx(idx)}
+                      key={idx} onPress={()=> setModalImgIdx(idx)}
                       style={styles.modalImgBtn}
                     >
                       <Image 
-                        source={item.image}
+                        source={{ uri: item.image_url }}
                         style={{width:60, height:60,}}
                         resizeMode="stretch"
                       />

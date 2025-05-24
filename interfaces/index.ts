@@ -428,9 +428,9 @@ export interface ICategory {
   created_at?: string;
 }
 
-export interface IImage {
-  image: FormData;
-}
+// export interface IImage {
+//   image: FormData;
+// }
 
 export interface ICreateRaffle {
   ticket_price: number; // Price of each card
@@ -458,6 +458,10 @@ export interface IRaffle {
   status: string;
   ticket_price: string;
   tickets: ITicket[];
+}
+
+export interface IImage {
+  image_url: string
 }
 
 export interface IGame {
