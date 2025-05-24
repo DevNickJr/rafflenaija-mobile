@@ -41,6 +41,7 @@ interface IAction {
 interface IAuthContextProvider extends IAuthContext {
   dispatch: React.Dispatch<IAction>;
   signIn: (value: Omit<IAuthContext, 'is_logged_in' | 'isLoading'>) => void;
+  refreshToken: (value: Pick<IAuthContext, "access_token">) => void
   signOut: () => void;
 }
 
@@ -60,6 +61,7 @@ const initAuthContext: IAuthContextProvider = {
   isLoading: false,
   dispatch: (): void => {},
   signIn: (value) => {},
+  refreshToken: (value) => {},
   signOut: () => {},
 };
 
@@ -162,8 +164,24 @@ export function SessionProvider({ children }: PropsWithChildren) {
     router.push("/(auth)/login");
   };
 
+  const refreshToken = (value: Pick<IAuthContext, 'access_token'>) => {
+    const data = {
+      ...state,
+      access_token: value.access_token,
+      is_logged_in: true,
+    };
+    dispatch({
+      type: 'LOGIN',
+      payload: data,
+    });
+    setSession(
+      JSON.stringify(data),
+    );
+    router.push("/(tabs)/home");
+  };
+
   return (
-    <AuthContext.Provider value={{ ...state, dispatch, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ ...state, dispatch, isLoading, signIn, signOut, refreshToken }}>
       {children}
     </AuthContext.Provider>
   );

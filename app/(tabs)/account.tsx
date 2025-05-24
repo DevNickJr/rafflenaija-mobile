@@ -6,6 +6,8 @@ import { FontAwesome5, MaterialIcons, Ionicons, Entypo } from '@expo/vector-icon
 import { useSession } from '@/providers/SessionProvider';
 import { Href, router } from 'expo-router';
 import { SafeView } from '@/components/SafeView';
+import UserIdCard from '@/components/UserIdCard';
+import AccountUser from '@/components/AccountUser';
 
 type MenuItem = {
   title: string;
@@ -43,49 +45,51 @@ const Account = () => {
   // <SafeAreaView style={[styles.container,{paddingTop:Platform.OS==="android"?40:0}]}>
   return (
     <SafeView>
-      <View style={styles.profileHeader}>
-        <Text style={styles.headerText}>Account</Text>
-      </View>
+      <ScrollView style={{
+        flexGrow: 1,
+      }}>
+        <AccountUser />
 
-      <ScrollView>
-      <View style={styles.contentContainer}>
-        <View style={styles.topMenuContainer}>
-          {topMenuItems.map((item, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={styles.menuItem}
-              onPress={() => handlePress(item)}
-            >
-              <View style={styles.iconWrapper}>{item.icon}</View>
-              <Text style={styles.menuText}>{item.title}</Text>
+        <View style={styles.contentContainer}>
+          <View style={styles.topMenuContainer}>
+            {topMenuItems.map((item, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[styles.menuItem, idx != topMenuItems?.length-1 && styles.menuItemSeparator]}
+                onPress={() => handlePress(item)}
+              >
+                <View style={styles.iconWrapper}>{item.icon}</View>
+                <Text style={styles.menuText}>{item.title}</Text>
 
-              <View style={{flex:1, alignItems:"flex-end"}}>
-                <MaterialIcons name="arrow-forward-ios" size={24} color="gray" />
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={{flex:1, alignItems:"flex-end"}}>
+                  <MaterialIcons name="arrow-forward-ios" size={24} color="gray" />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={{
+            ...styles.topMenuContainer,
+              marginTop: 30,
+          }}>
+            {bottomMenuItems.map((item, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[styles.menuItem, idx != bottomMenuItems?.length-1 && styles.menuItemSeparator]}
+                onPress={() => handlePress(item)}
+              >
+                <View style={styles.iconWrapper}>{item.icon}</View>
+                <Text style={[styles.menuText, item.title === 'Log Out' && { color: '#E53935' }]}>
+                  {item.title}
+                </Text>
+
+                <View style={{flex:1, alignItems:"flex-end"}}>
+                  <MaterialIcons name="arrow-forward-ios" size={24} color={item.title === 'Log Out'?'#E53935':'gray'} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-
-        <View style={styles.bottomMenuContainer}>
-          {bottomMenuItems.map((item, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.menuItem, idx === 0 && styles.menuItemSeparator]}
-              onPress={() => handlePress(item)}
-            >
-              <View style={styles.iconWrapper}>{item.icon}</View>
-              <Text style={[styles.menuText, item.title === 'Log Out' && { color: '#E53935' }]}>
-                {item.title}
-              </Text>
-
-              <View style={{flex:1, alignItems:"flex-end"}}>
-                <MaterialIcons name="arrow-forward-ios" size={24} color={item.title === 'Log Out'?'#E53935':'gray'} />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
       </ScrollView>
     </SafeView>
   );
@@ -101,10 +105,13 @@ const styles = StyleSheet.create({
     // paddingBottom:70
   },
   profileHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center', gap: 20,
     padding: 20,
     paddingTop: 20,
     // backgroundColor: '#fff',
-    marginBottom: 10,
+    // marginBottom: 10,
   },
   headerText: {
     fontSize: 22,
@@ -114,13 +121,16 @@ const styles = StyleSheet.create({
     flex: 1,
     // justifyContent: 'space-between',
     paddingHorizontal: 15,
+    paddingBottom: 30,
+
   },
   topMenuContainer: {
-    height: '80%',
-    justifyContent: 'space-evenly',
+    // height: '80%',
+    // justifyContent: 'space-evenly',
+    gap: 10,
     backgroundColor: '#fff',
     borderRadius: 15,
-    paddingVertical: 20,
+    paddingTop: 10,
     paddingHorizontal: 10,
     elevation: 2,
     shadowColor: '#000',
@@ -128,18 +138,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
   },
-  bottomMenuContainer: {
-    backgroundColor: '#fff',
-    marginTop: 30,
-    borderRadius: 15,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-  },
+  // bottomMenuContainer: {
+  //   backgroundColor: '#fff',
+  //   marginTop: 30,
+  //   borderRadius: 15,
+  //   paddingVertical: 10,
+  //   paddingHorizontal: 10,
+  //   elevation: 2,
+  //   shadowColor: '#000',
+  //   shadowOpacity: 0.05,
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowRadius: 8,
+  // },
   iconWrapper: {
     width: 30,
     alignItems: 'center',
@@ -153,7 +163,8 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 10,
+    paddingBottom: 20,
     paddingHorizontal: 10,
   },
   menuItemSeparator: {

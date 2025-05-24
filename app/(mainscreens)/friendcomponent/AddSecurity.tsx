@@ -1,4 +1,8 @@
 import DropDownScroll from '@/components/DropDownScroll';
+import useFetch from '@/hooks/useFetch';
+import useMutate from '@/hooks/useMutation';
+import { IResponseData } from '@/interfaces';
+import { apiGetSecurityQuestions, apiSetSecurityQuestions } from '@/services/WalletService';
 import React, { useReducer, useState } from 'react';
 import { Alert } from 'react-native';
 import {
@@ -10,6 +14,7 @@ import {
   ActivityIndicator,
   GestureResponderEvent,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 interface ISecurityQuestion {
   security_question: string;
@@ -37,53 +42,73 @@ type Props = {
 const AddSecurityQuestion = ({ onAnswer }: Props) => {
   const [security, setSecurity] = useState<ISecurityQuestions>({
     security_questions: [],
-    security_answers: [],
-  });
+    security_answers: []
+  })
 
-  const [loading, setLoading] = useState(false);
-  const [questions] = useState<string[]>([
-    'What is your pet’s name?',
-    'What is your mother’s maiden name?',
-    'What city were you born in?',
-  ]);
+  const [user, dispatch] = useReducer((state: ISecurityQuestion, action: ISecurityQuestionAction) => {
+  if (action.type === "reset") {
+  return initialState
+  }
+  return { ...state, [action.type]: action.payload }
+  }, initialState)
 
-  const [user, dispatch] = useReducer(
-    (state: ISecurityQuestion, action: ISecurityQuestionAction) => {
-      if (action.type === 'reset') return initialState;
-      return { ...state, [action.type]: action.payload };
-    },
-    initialState,
-  );
-
-  const [currentQsn, setCurrentQsn] = useState('');
+  const { data: questions } = useFetch<IResponseData<string[]>>({
+    api: apiGetSecurityQuestions,
+    key: ["security-questions"],
+    requireAuth: true
+  })
 
   const handleAdd = () => {
-    if (security.security_questions.length >= 3) return;
+    if (security.security_questions.length >= 3) {
+        Toast.show({
+            type: "error",
+            text1: "Only 3 questions can be added"
+        })
+        return
+    }
+    if (security.security_questions.length === 2) {
+      Toast.show({
+        type: "info",
+        text1: "3 questions added. You can now submit"
+      })
+    }
+    setSecurity(prev => ({
+        security_questions: [...prev.security_questions, user.security_question],
+        security_answers: [...prev.security_answers, user.security_answer]
+    }))
+    dispatch({ type: "reset", payload: "" })
+  }
 
-    setCurrentQsn('');
-    setSecurity((prev) => ({
-      security_questions: [...prev.security_questions, user.security_question],
-      security_answers: [...prev.security_answers, user.security_answer],
-    }));
+  const securityQuestionMutation = useMutate<ISecurityQuestions, any>(
+    apiSetSecurityQuestions,
+    {
+      onSuccess: (data: IResponseData<"">) => {
+          console.log("data", data)
+          
+          Toast.show({
+              type: "success",
+              text1: data.message || "Operation Successful"
+          })
+          return
+      },
+      showErrorMessage: true,
+    }
+  )
 
-    dispatch({ type: 'reset', payload: '' });
-  };
 
-  const handleSubmit = () => {
-    // Hanndle Submit Logic
-    if (security.security_questions.length < 3) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert('Security Questions Submitted Successfully', '', [
-        { text: 'OK', onPress: onAnswer },
-      ]);
-    }, 2000);
-  };
+  const handleSubmit = async () => {
+    if (security.security_questions.length < 3) {
+      return Toast.show({
+            type: "error",
+            text1: "3 questions are required"
+        })
+    }
+    securityQuestionMutation.mutate(security)
+  }
 
   return (
     <View style={styles.container}>
-      {loading && <ActivityIndicator size="large" color="#000" />}
+      {securityQuestionMutation?.isPending && <ActivityIndicator size="large" color="#000" />}
       <Text style={styles.header}>Set Withdrawal Question & Answer</Text>
       <Text style={styles.subText}>
         Enter a question and Answer that you can always remember and is also unique to you. A total
@@ -92,10 +117,9 @@ const AddSecurityQuestion = ({ onAnswer }: Props) => {
 
       <DropDownScroll
         label="Withdrawal Question"
-        options={questions}
-        value={currentQsn}
+        options={questions?.data || []}
+        value={user.security_question}
         onSelect={(value) => {
-          setCurrentQsn(value);
           dispatch({ type: 'security_question', payload: value });
         }}
       />

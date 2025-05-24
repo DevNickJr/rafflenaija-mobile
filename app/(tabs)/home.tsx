@@ -20,16 +20,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import UserIdCard from '@/components/UserIdCard';
 import { Colors } from '@/constants/Colors';
 import { SafeView } from '@/components/SafeView';
-import { IBanner, ICategory, IGame, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
+import { IBanner, ICategory, IGame, IImage, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
 import useFetch from '@/hooks/useFetch';
 import { apiGetCategories, apiGetGames } from '@/services/GameService';
 import { apiGetBannerItems } from '@/services/AdminService';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import ModalComponent from '@/components/ModalComponent';
 import RaffleModal from '@/components/RaffleModal';
 import { useSession } from '@/providers/SessionProvider';
 import { apiGetUser } from '@/services/AuthService';
 import Toast from 'react-native-toast-message';
+import Profile from '@/components/Profile';
 
 const { width } = Dimensions.get('screen');
 const NUM_CARDS = 5;
@@ -45,11 +46,11 @@ interface IBannerV2 {
   image: ImageSourcePropType;
 }
 
-const slideImages: IBannerV2[] = [
-  { id: 1, image: require('@/assets/images/favicon.png') },
-  { id: 2, image: require('@/assets/images/react-logo.png') },
-  { id: 3, image: require('@/assets/images/homelogo.png') },
-];
+// const slideImages: IBannerV2[] = [
+//   { id: 1, image: require('@/assets/images/favicon.png') },
+//   { id: 2, image: require('@/assets/images/react-logo.png') },
+//   { id: 3, image: require('@/assets/images/homelogo.png') },
+// ];
 
 // const categories = [
 //   'Powerbank',
@@ -80,7 +81,7 @@ const HomeScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
 
   // Modal Details
-  const [showImageModal, setShowImageModal]=useState(false)
+  const [showImageModal, setShowImageModal]=useState(true)
   const [modalImgIdx, setModalImgIdx]=useState(0)
   const [showNotifyModal, setShowNotifyModal]=useState(false)
   
@@ -149,8 +150,8 @@ const HomeScreen = () => {
   }, []);
 
   const getItemLayout = (_: any, index: number) => ({
-    length: width - 40,
-    offset: (width - 40) * index,
+    length: width,
+    offset: (width) * index,
     index,
   });
 
@@ -165,10 +166,16 @@ const HomeScreen = () => {
     }
     setTicket({ code, price })
   }
+  const [images, setImages] = useState<IImage[]>([])
 
+
+  const handleOpenImageModal = (images: IImage[]) => {
+    setImages(images)
+    setShowImageModal(true)
+  }
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (width - 40));
+    const index = Math.round(scrollPosition / (width));
     setActiveDot(index);
   };
 
@@ -192,7 +199,7 @@ const HomeScreen = () => {
   const renderBannerItem: ListRenderItem<IBanner> = ({ item }) => (
     <Image
       src={item.image}
-      style={{ width: width - 40, height: 210, borderRadius: 10 }}
+      style={{ width: width, height: 210, borderRadius: 10 }}
       resizeMode="stretch"
     />
   );
@@ -244,10 +251,7 @@ const HomeScreen = () => {
 
   const renderHeader = () => (
     <View style={{ backgroundColor: '#f4f7f9', paddingHorizontal: 10 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 20 }}>
-        <Image source={require('@/assets/images/homelogo.png')} style={{ width: 40, height: 40 }} />
-        <UserIdCard />
-      </View>
+      <Profile />
 
       {/* Categories */}
       <FlatList
@@ -311,8 +315,15 @@ const HomeScreen = () => {
                  {/* Random Select Row */}
                 <View style={styles.randomRow}>
                   <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
-                  <TouchableOpacity style={styles.randomBtn}>
+                  {/* <TouchableOpacity style={styles.randomBtn}>
                     <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+                  </TouchableOpacity> */}
+                  <TouchableOpacity 
+                    style={{flexDirection:"row",gap:4,alignItems:"center"}}
+                    onPress={()=>handleOpenImageModal(game?.images)}
+                  >
+                    <Entypo name="camera" size={24} color="#449444" />
+                    <Text style={{color:"#449444", fontSize:16,fontWeight:"600"}}>View Item Image</Text>
                   </TouchableOpacity>
                 </View>            
                 {
@@ -354,6 +365,7 @@ const HomeScreen = () => {
           visible={showImageModal}
           onRequestClose={() => {
             // Alert.alert('Modal has been closed.');
+            setImages([])
             setShowImageModal(false);
           }}>
           <View style={styles.modalContainer}>
@@ -361,27 +373,29 @@ const HomeScreen = () => {
             <View style={styles.modalTopNNav}>
               <TouchableOpacity 
                 // style={styles.modalImgBtn}
-                onPress={()=>setShowImageModal(false)}
+                onPress={()=> {
+                  setImages([])
+                  setShowImageModal(false)
+                }}
               >
                 <Ionicons name="close" size={30} color="#fff" />
               </TouchableOpacity>
             </View>
             <View style={styles.modalInnerWrapper}>
               <Image 
-                source={slideImages[modalImgIdx].image}
+                source={{ uri: images[modalImgIdx].image_url }}
                 style={{width:300, height:350,}}
                 resizeMode="stretch"
               />
-
               <View style={{flexDirection:"row", gap:6, justifyContent:"center"}}>
                 {
-                  slideImages.map((item, idx)=>(
+                  images?.map((item, idx)=>(
                     <TouchableOpacity 
-                      key={idx} onPress={()=>setModalImgIdx(idx)}
+                      key={idx} onPress={()=> setModalImgIdx(idx)}
                       style={styles.modalImgBtn}
                     >
                       <Image 
-                        source={item.image}
+                        source={{ uri: item.image_url }}
                         style={{width:60, height:60,}}
                         resizeMode="stretch"
                       />

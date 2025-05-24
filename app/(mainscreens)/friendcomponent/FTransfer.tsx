@@ -14,6 +14,8 @@ import {
 import { ITransfer, ITransferAction, IResponseData } from '@/interfaces';
 import { apiTransfer } from '@/services/WalletService';
 import ModalBtn from '@/components/ModalBtn';
+import useMutate from '@/hooks/useMutation';
+import Toast from 'react-native-toast-message';
 
 const initialState: ITransfer = {
   amount: 0,
@@ -38,6 +40,22 @@ const FTransfer = () => {
   //     }
   //   );
 
+  const TransferToFriendMutation = useMutate<ITransfer, any>(
+    apiTransfer,
+    {
+      onSuccess: (data: IResponseData<''>) => {
+          console.log("new data", data)
+          dispatch({ type: "reset", payload: "" })
+          Toast.show({
+            type: "success",
+            text1: "Transfer Successful"
+          });
+      },
+      showErrorMessage: true,
+      requireAuth: true
+    }
+  )
+
   const handleTransfer = () => {
     if (!user.amount) {
       return alert('Enter Amount');
@@ -51,14 +69,16 @@ const FTransfer = () => {
       return alert('Amount must be 100 and above');
     }
 
-    // TransferToFriendMutation.mutate(user);
-  };
+    TransferToFriendMutation.mutate(user)
+  }
+  
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* {TransferToFriendMutation.isPending && (
+      {TransferToFriendMutation.isPending && (
         <ActivityIndicator size="large" color="#000" style={styles.loader} />
-      )} */}
+      )}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Recipient Phone</Text>
         <TextInput
@@ -108,7 +128,6 @@ export default FTransfer;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 16,
     //   paddingHorizontal: 16,
   },
   loader: {

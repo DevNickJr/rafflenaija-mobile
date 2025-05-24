@@ -129,7 +129,7 @@ const Deposit = () => {
             popup.checkout({
               email: user.email,
               reference: user.reference,
-              amount: Number(user.amount || 0)*100,
+              amount: Number(user.amount || 0),
               // plan: 'PLN_example123',
               // invoice_limit: 3,
               // subaccount: 'SUB_abc123',
@@ -227,7 +227,7 @@ const Deposit = () => {
                   />
                 </View>
                 <TouchableOpacity style={styles.button} onPress={handlePayment}>
-                  <Text style={styles.buttonText}>Fund Wallet</Text>
+                  <Text style={styles.buttonText}>{depositMutation?.isPending ? "Processing..." : "Fund Wallet"}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.noteContainer}>
