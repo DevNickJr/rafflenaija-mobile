@@ -10,86 +10,178 @@ import {
   ListRenderItem,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
+  ScrollView,
+  Modal,
+  ImageSourcePropType,
+  ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import UserIdCard from '@/components/UserIdCard';
 import { Colors } from '@/constants/Colors';
+import { SafeView } from '@/components/SafeView';
+import { IBanner, ICategory, IGame, IImage, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
+import useFetch from '@/hooks/useFetch';
+import { apiGetCategories, apiGetGames } from '@/services/GameService';
+import { apiGetBannerItems } from '@/services/AdminService';
+import { Entypo, Ionicons } from '@expo/vector-icons';
+import ModalComponent from '@/components/ModalComponent';
+import RaffleModal from '@/components/RaffleModal';
+import { useSession } from '@/providers/SessionProvider';
+import { apiGetUser } from '@/services/AuthService';
+import Toast from 'react-native-toast-message';
+import Profile from '@/components/Profile';
 
 const { width } = Dimensions.get('screen');
 const NUM_CARDS = 5;
 const CARD_GAP = 8; // margin: 4 on each side = 8 total
-const SIDE_PADDING = 40; // 20 left + 20 right from styles.container
+const SIDE_PADDING = 20; // 20 left + 20 right from styles.container
 
 const totalGapWidth = CARD_GAP * (NUM_CARDS - 1);
 const availableWidth = width - SIDE_PADDING - totalGapWidth;
 const cardSize = availableWidth / NUM_CARDS;
 
-type SlideImage = {
+interface IBannerV2 {
   id: number;
-  image: any;
-};
+  image: ImageSourcePropType;
+}
 
-const slideImages: SlideImage[] = [
-  { id: 1, image: require('@/assets/images/homelogo.png') },
-  { id: 2, image: require('@/assets/images/react-logo.png') },
-  { id: 3, image: require('@/assets/images/homelogo.png') },
-];
+// const slideImages: IBannerV2[] = [
+//   { id: 1, image: require('@/assets/images/favicon.png') },
+//   { id: 2, image: require('@/assets/images/react-logo.png') },
+//   { id: 3, image: require('@/assets/images/homelogo.png') },
+// ];
 
-const categories = [
-  'Powerbank',
-  'Headphones',
-  'Speakers',
-  'Smartwatches',
-  'Tablets',
-  'Gaming Consoles',
-  'Phone Cases',
-  'Portable Mini Fan',
-  'Bluetooth Earpiece',
-  'Wireless Mouse',
-  'Webcam Cover',
-  'Digital Alarm Clock',
-  'Magnetic Phone Mount',
-  'Car Phone Holder',
-];
+// const categories = [
+//   'Powerbank',
+//   'Headphones',
+//   'Speakers',
+//   'Smartwatches',
+//   'Tablets',
+//   'Gaming Consoles',
+//   'Phone Cases',
+//   'Portable Mini Fan',
+//   'Bluetooth Earpiece',
+//   'Wireless Mouse',
+//   'Webcam Cover',
+//   'Digital Alarm Clock',
+//   'Magnetic Phone Mount',
+//   'Car Phone Holder',
+// ];
 
 const codes = Array.from({ length: 26 }, (_, i) =>
   Array.from({ length: 9 }, (_, j) => `${String.fromCharCode(65 + i)}${j + 1}`),
 ).flat();
 
 const HomeScreen = () => {
-  const flatListRef = useRef<FlatList<string>>(null);
-  const bannerRef = useRef<FlatList<SlideImage>>(null);
-
+  const { dispatch, access_token, refresh_token, ...context } = useSession()
+  // const flatListRef = useRef<FlatList<string>>(null);
+  const bannerRef = useRef<FlatList<IBanner>>(null);
   const [activeDot, setActiveDot] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
+
+  // Modal Details
+  const [showImageModal, setShowImageModal]=useState(true)
+  const [modalImgIdx, setModalImgIdx]=useState(0)
+  const [showNotifyModal, setShowNotifyModal]=useState(false)
+  
+  
+
+  const { data: categories } = useFetch<IResponseData<ICategory[]>>({
+    api: apiGetCategories,
+    key: ["categories"],
+  })
+
+  const { data: user, refetch: refetchUser } = useFetch<IResponseData<IUser>>({
+    api: apiGetUser,
+    key: ["user"],
+    requireAuth: true,
+    enabled: !!access_token,
+    showMessage: false
+  })
+
+  useEffect(() => {
+    if (access_token && user?.data) {
+      dispatch({ type: "LOGIN", payload: {
+        access_token: access_token,
+        refresh_token: refresh_token,
+        wallet_balance: user?.data?.wallet_balance || "",
+        phone_number: user?.data?.phone_number || "",
+        first_name: user?.data?.first_name || "",
+        last_name: user?.data?.last_name || "",
+        email: user?.data?.email || "",
+        is_verified: user?.data?.is_verified || false,
+        dob: user?.data?.dob || "",
+        gender: user?.data?.gender || "",
+        profile_picture: user?.data?.profile_picture || "",
+      }})
+    }
+  },[user, dispatch, access_token, refresh_token])
+
+  const { data: games, isLoading: isLoadingGames, refetch: refetchGames } = useFetch<IResponseData<IGame[]>>({
+    api: apiGetGames,
+    key: ["games", selectedCategory?.id || ""],
+    param: selectedCategory?.id,
+    enabled: !!selectedCategory?.id
+  })
+
+  const { data: banners } = useFetch<IResponseData<IBanner[]>>({
+    api: apiGetBannerItems,
+    key: ["banners"],
+  })
+  
+  useEffect(() => {
+    if (categories?.data) {
+        setSelectedCategory(categories?.data[0])
+      }
+  }, [categories]);
 
   // Auto-slide logic
   useEffect(() => {
+    if (!banners?.data?.length) return;
     const interval = setInterval(() => {
       setActiveDot((prev) => {
-        const next = (prev + 1) % slideImages.length;
+        const next = (prev + 1) % (banners?.data?.length || 1);
         bannerRef.current?.scrollToIndex({ index: next, animated: true });
         return next;
       });
-    }, 3000);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
   const getItemLayout = (_: any, index: number) => ({
-    length: width - 40,
-    offset: (width - 40) * index,
+    length: width,
+    offset: (width) * index,
     index,
   });
 
+  const [ticket, setTicket] = useState<IRaffleTicket | null>(null)
+      
+  const handleRaffle = (code: string, price: string) => {
+    if (!context.is_logged_in) {
+      return Toast.show({
+        type: 'info',
+        text1: 'Your session has expired'
+      })
+    }
+    setTicket({ code, price })
+  }
+  const [images, setImages] = useState<IImage[]>([])
+
+
+  const handleOpenImageModal = (images: IImage[]) => {
+    setImages(images)
+    setShowImageModal(true)
+  }
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (width - 40));
+    const index = Math.round(scrollPosition / (width));
     setActiveDot(index);
   };
 
   const renderDotIndicator = () => (
     <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-      {slideImages.map((_, index) => (
+      {banners?.data?.map((_, index) => (
         <View
           key={index}
           style={{
@@ -104,10 +196,10 @@ const HomeScreen = () => {
     </View>
   );
 
-  const renderBannerItem: ListRenderItem<SlideImage> = ({ item }) => (
+  const renderBannerItem: ListRenderItem<IBanner> = ({ item }) => (
     <Image
-      source={item.image}
-      style={{ width: width - 40, height: 230, borderRadius: 10 }}
+      src={item.image}
+      style={{ width: width, height: 210, borderRadius: 10 }}
       resizeMode="stretch"
     />
   );
@@ -132,57 +224,69 @@ const HomeScreen = () => {
   //     </TouchableOpacity>
   //   );
   // };
-  const CodeCard = React.memo(({ item }: { item: string }) => {
-    const isRaffled = item.includes('1');
+  const CodeCard = React.memo(({ item, index }: { item: ITicket & { price: string }; index: number; }) => {
+    const isRaffled = item.status != "active";
     return (
       <TouchableOpacity
+        onPress={() => handleRaffle(item.code, item.price)}
         style={[
           {
             width: cardSize,
             height: cardSize,
-            margin: 4,
+            // margin: CARD_GAP/2,
+            // marginLeft: index % NUM_CARDS === 0 ? 0 : CARD_GAP/2,
+            // marginRight: index % NUM_CARDS === (NUM_CARDS-1) ? 0 : CARD_GAP/2
           },
           styles.rafCard,
           isRaffled && styles.raffledCard,
         ]}>
         <Text style={isRaffled ? styles.raffledText : styles.normalText}>
-          {isRaffled ? 'Raffled' : item}
+          {item.is_winner ? 'WON' : isRaffled ? 'Raffled' :  codes[index] ?? index}
         </Text>
       </TouchableOpacity>
     );
   });
-  const renderCodeItem: ListRenderItem<string> = ({ item }) => <CodeCard item={item} />;
+  const renderCodeItem = ({ item, index }: { item: ITicket & { price: string }; index: number }) => <CodeCard item={item} index={index} />;
+  // const renderCodeItem: ListRenderItem<ITicket> = ({ item, index }) => <CodeCard item={item} index={index} />;
 
   const renderHeader = () => (
-    <View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Image source={require('@/assets/images/homelogo.png')} style={{ width: 40, height: 40 }} />
-        <UserIdCard />
-      </View>
+    <View style={{ backgroundColor: '#f4f7f9', paddingHorizontal: 10 }}>
+      <Profile />
 
       {/* Categories */}
       <FlatList
         horizontal
-        data={categories}
+        data={categories?.data}
         renderItem={({ item, index }) => (
           <TouchableOpacity
-            style={[styles.catItem, selectedCategory === index && { backgroundColor: '#D23433' }]}
-            onPress={() => setSelectedCategory(index)}>
-            <Text style={{ color: selectedCategory === index ? '#fff' : '#000' }}>{item}</Text>
+            style={[styles.catItem, selectedCategory?.id === item?.id && { backgroundColor: '#D23433' }]}
+            onPress={() => setSelectedCategory(item)}>
+            <Text style={{ color: selectedCategory?.id === item?.id  ? '#fff' : '#000' }}>{item?.name}</Text>
           </TouchableOpacity>
         )}
-        keyExtractor={(_, i) => i.toString()}
+        keyExtractor={(item, i) => `${item.id}-${i}`}
         contentContainerStyle={styles.categoryStyle}
         showsHorizontalScrollIndicator={false}
       />
 
-      {/* Banner */}
+      {/* Random Select Row */}
+      {/* <View style={styles.randomRow}>
+        <Text style={{ fontSize: 16, fontWeight: '600' }}>{selectedCategory?.name}</Text>
+        <TouchableOpacity style={styles.randomBtn}>
+          <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+        </TouchableOpacity>
+      </View> */}
+    </View>
+  );
+  const renderBanner = () => (
+   <>
+         {/* Banner */}
       <FlatList
         ref={bannerRef}
-        data={slideImages}
+        data={banners?.data || []}
         renderItem={renderBannerItem}
         horizontal
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, i) => `${item.id}-${i}`}
         pagingEnabled
         getItemLayout={getItemLayout}
         onScroll={handleScroll}
@@ -190,32 +294,130 @@ const HomeScreen = () => {
       />
 
       {renderDotIndicator()}
-
-      {/* Random Select Row */}
-      <View style={styles.randomRow}>
-        <Text style={{ fontSize: 16, fontWeight: '600' }}>{categories[selectedCategory]}</Text>
-        <TouchableOpacity style={styles.randomBtn}>
-          <Text style={{ color: Colors.light.primary }}>Random Select</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+   </>
   );
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <FlatList
-          data={codes}
-          ref={flatListRef}
-          keyExtractor={(item) => item}
-          numColumns={5}
-          renderItem={renderCodeItem}
-          ListHeaderComponent={renderHeader}
-          contentContainerStyle={{ paddingBottom: 40 }}
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-    </SafeAreaView>
+    <SafeView style={{ backgroundColor:"#f4f7f9" }}>
+    {/* <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android" ? 20 : 0 }}> */}
+      {renderHeader()}
+      <ScrollView contentContainerStyle={styles.container}>
+        <>
+          {renderBanner()}
+          {
+              isLoadingGames?
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                  <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
+                </View>
+                :
+            games?.data?.map((game, index) => 
+              <View key={index}>
+                 {/* Random Select Row */}
+                <View style={styles.randomRow}>
+                  <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
+                  {/* <TouchableOpacity style={styles.randomBtn}>
+                    <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+                  </TouchableOpacity> */}
+                  <TouchableOpacity 
+                    style={{flexDirection:"row",gap:4,alignItems:"center"}}
+                    onPress={()=>handleOpenImageModal(game?.images)}
+                  >
+                    <Entypo name="camera" size={24} color="#449444" />
+                    <Text style={{color:"#449444", fontSize:16,fontWeight:"600"}}>View Item Image</Text>
+                  </TouchableOpacity>
+                </View>            
+                {
+                  game?.raffles[0]?.tickets?.length > 0 ? 
+                  <View style={styles.raffleContainer}>
+                    {
+                      game?.raffles[0]?.tickets?.map((ticket, index) => (
+                        <CodeCard item={{
+                          ...ticket,
+                          price: game?.raffles[0]?.ticket_price
+                        }} index={index} key={index}/>
+                      ))
+                  }
+                  </View>
+                  :
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                    <Text>No raffles available</Text>
+                  </View>
+              }
+                {/* <FlatList
+                  data={game?.raffles[0]?.tickets || []}
+                  // ref={flatListRef}
+                  keyExtractor={(item, index) => `${item?.code}-${index}`}
+                  numColumns={5}
+                  renderItem={renderCodeItem}
+                  // ListHeaderComponent={renderHeader}
+                  contentContainerStyle={{ paddingBottom: 40 }}
+                  showsVerticalScrollIndicator={false}
+                /> */}
+              </View>
+              )
+          }
+        </>
+      </ScrollView>
+
+      <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showImageModal}
+          onRequestClose={() => {
+            // Alert.alert('Modal has been closed.');
+            setImages([])
+            setShowImageModal(false);
+          }}>
+          <View style={styles.modalContainer}>
+            {/* Top Nav */}
+            <View style={styles.modalTopNNav}>
+              <TouchableOpacity 
+                // style={styles.modalImgBtn}
+                onPress={()=> {
+                  setImages([])
+                  setShowImageModal(false)
+                }}
+              >
+                <Ionicons name="close" size={30} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalInnerWrapper}>
+              <Image 
+                source={{ uri: images[modalImgIdx].image_url }}
+                style={{width:300, height:350,}}
+                resizeMode="stretch"
+              />
+              <View style={{flexDirection:"row", gap:6, justifyContent:"center"}}>
+                {
+                  images?.map((item, idx)=>(
+                    <TouchableOpacity 
+                      key={idx} onPress={()=> setModalImgIdx(idx)}
+                      style={styles.modalImgBtn}
+                    >
+                      <Image 
+                        source={{ uri: item.image_url }}
+                        style={{width:60, height:60,}}
+                        resizeMode="stretch"
+                      />
+                    </TouchableOpacity>
+                  ))
+                
+                }
+              </View>
+            </View>
+          </View>
+      </Modal>
+
+      <ModalComponent
+        visible={showNotifyModal}
+        title='Are you sure you want to raffle the Card?'
+        content='You are about to pay to raffle the card'
+        titleSize={20}
+        boldTxt={`₦${1000.00}`}
+        onCancel={() => setShowNotifyModal(false)}
+        onConfirm={()=>{}}
+      />
+    </SafeView>
   );
 };
 
@@ -223,16 +425,20 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingTop: 20,
-    paddingHorizontal: 16,
+    // flex: 1,
+    flexGrow: 1,
+    paddingBottom: 20,
+    // paddingLeft: SIDE_PADDING/2,
+    paddingHorizontal: 10,
+    backgroundColor: '#f4f7f9',
   },
   categoryStyle: {
     paddingVertical: 8,
     gap: 6,
   },
   catItem: {
-    backgroundColor: '#f0f0f0',
+    // backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff',
     padding: 8,
     borderRadius: 4,
     marginRight: 8,
@@ -240,9 +446,9 @@ const styles = StyleSheet.create({
   randomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 4,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 20,
   },
   randomBtn: {
     borderWidth: 1,
@@ -255,7 +461,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: 8,
     justifyContent: 'center',
   },
   rafCard: {
@@ -276,4 +482,26 @@ const styles = StyleSheet.create({
     color: '#952524',
     textAlign: 'center',
   },
+  modalContainer:{
+    flex:1,
+    backgroundColor:"rgba(0,0,0,0.6)"
+  },
+  modalInnerWrapper:{
+    flex:1, 
+    alignItems:"center",
+    justifyContent:"center",
+    gap:20
+  },
+  modalImgBtn:{
+    borderWidth:1,
+    borderColor:"#c0c0c0",
+    padding:2,
+    borderRadius:4
+  },
+  modalTopNNav:{
+    marginTop: Platform.OS==="android"?10:60,
+    paddingHorizontal:20,
+    flexDirection:"row",
+    justifyContent:"flex-end"
+  }
 });

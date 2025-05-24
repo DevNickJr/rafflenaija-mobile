@@ -3,14 +3,16 @@ import InputField from '@/components/AuthInput';
 import AuthLink from '@/components/AuthLink';
 import Checkbox from '@/components/Checkbox';
 import WaveUI from '@/components/WaveUi';
+import { Colors } from '@/constants/Colors';
 import useMutate from '@/hooks/useMutation';
 import { ILoginReducerAction, ILoginResponse, IResponseData, IUserLogin } from '@/interfaces';
 import { useSession } from '@/providers/SessionProvider';
 import { apiLogin } from '@/services/AuthService';
 import { router } from 'expo-router';
 import React, { useReducer, useState } from 'react';
-import { StatusBar, Text, View, StyleSheet } from 'react-native';
+import { StatusBar, Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import Toast from 'react-native-toast-message';
+
 
 const initialState: IUserLogin = {
   phone_number: '',
@@ -45,9 +47,10 @@ export default function Login() {
       });
 
       dispatch({ type: 'reset' });
-      return router.push('/');
+      return router.push("/(tabs)/home");
     },
     onError(error) {
+      console.log(error)
       if (typeof error?.response?.data?.message === 'string') {
         if (error?.response?.data?.message === 'Please verify your account') {
           Toast.show({
@@ -63,20 +66,34 @@ export default function Login() {
       } else {
         Toast.show({
           type: 'error',
-          text1: error?.response?.data?.message[0] || 'An Error Occurred!',
+          text1: error?.response?.data?.message?.[0] || 'An Error Occurred!',
         });
       }
     },
   });
   // showErrortext1: true,
 
-  const login = async (user: IUserLogin) => {
+  const login = async () => {
     if (!user.phone_number) {
       Toast.show({
         type: 'info',
-        text1: 'Phone number cannot be empty',
-      });
-      return;
+        text1: "Phone number cannot be empty",
+      })
+      return
+    }
+    if (user.phone_number.length !== 11) {
+      Toast.show({
+        type: 'info',
+        text1: "Phone number must be 11 digits",
+      })
+      return
+    }
+    if (user.phone_number[0] != "0") {
+      Toast.show({
+        type: 'info',
+        text1: "Phone number must start with 0",
+    })
+      return
     }
     if (!user.password) {
       Toast.show({
@@ -85,8 +102,48 @@ export default function Login() {
       });
       return;
     }
+    if (user.password.length < 8) {
+      Toast.show({
+        type: 'info',
+        text1: "Password incorrect",
+      })
+      return
+    }
+
     loginMutation.mutate(user);
   };
+
+  
+  const dummyLogin=()=>{
+
+    let myUser ={
+      phone_number: "09012345678",
+      first_name: "John",
+      last_name: "Doe",
+      email: "john.doe@example.com",
+      is_verified: true,
+      dob: "1990-01-01",
+      gender: "Male",
+      profile_picture: "https://farm4.staticflickr.com/3075/3168662394_7d7103de7d_z_d.jpg",
+      created_at: "2023-01-01T00:00:00Z",
+    }
+
+
+
+    signIn({
+      ...myUser,
+      access_token: "dummy-access-token-123",
+      refresh_token: "dummy-refresh-token-456",
+      wallet_balance: "5000.00",
+    });
+    Toast.show({
+      type: 'success',
+      text1: 'Logged in',
+    });
+
+    dispatch({ type: 'reset' });
+    return router.push("/(tabs)/home");
+  }
 
   // useEffect(() => {
   //   if (loginMutation.isSuccess) {
@@ -96,47 +153,62 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.light.primary} />
 
       <WaveUI underlineTxt="Sign" restTxt="in" />
+      <ScrollView>
+        <View style={styles.form}>
+          <Text style={styles.label}>Phone Number</Text>
+          <InputField
+            icon="call-outline"
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+            maxLength={11}
+            numbersOnly
+            value={user?.phone_number}
+            onChangeText={(value) => dispatch({ type: 'phone_number', payload: value })}
+            // value={phoneNumber}
+            // onChangeText={setPhoneNumber}
+          />
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Phone Number</Text>
-        <InputField
-          icon="call-outline"
-          placeholder="Enter your phone number"
-          keyboardType="phone-pad"
-          maxLength={11}
-          numbersOnly
-          value={user?.phone_number}
-          onChangeText={(value) => dispatch({ type: 'phone_number', payload: value })}
-          // value={phoneNumber}
-          // onChangeText={setPhoneNumber}
-        />
+          <Text style={styles.label}>Password</Text>
+          <InputField
+            icon="lock-closed-outline"
+            placeholder="Enter your password"
+            secureTextEntry
+            value={user?.password}
+            onChangeText={(value) => dispatch({ type: 'password', payload: value })}
+            // onChangeText={setPassword}
+            // value={password}
+          />
 
-        <Text style={styles.label}>Password</Text>
-        <InputField
-          icon="lock-closed-outline"
-          placeholder="Enter your password"
-          secureTextEntry
-          value={user?.password}
-          onChangeText={(value) => dispatch({ type: 'password', payload: value })}
-          // onChangeText={setPassword}
-          // value={password}
-        />
+          <View style={styles.options}>
+            <Checkbox label="Remember Me" isChecked={isChecked} setChecked={setChecked} />
+            <AuthLink label="Forgot Password?" onPress={() => router.navigate('/(auth)/phone')} />
+          </View>
 
-        <View style={styles.options}>
-          <Checkbox label="Remember Me" isChecked={isChecked} setChecked={setChecked} />
-          <AuthLink label="Forgot Password?" onPress={() => router.navigate('/(auth)/phone')} />
+          {loginMutation?.isPending ?
+              <View style={{
+                flex: 1, 
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderRadius: 10,
+                marginTop: 12,
+              }}>
+                <ActivityIndicator size="large" color={Colors.light.primary} />
+              </View>
+              :
+          <AuthButton title="Login" onPress={login} />
+          }
+          {/* <AuthButton title="Login" onPress={() => login(user)} /> */}
+
+          <TouchableOpacity onPress={() => router.navigate('/(auth)/register')} style={styles.signupContainer}>
+            <Text style={styles.signupText}>Don’t have an Account?</Text>
+            <AuthLink label=" Sign up" onPress={() => router.navigate('/(auth)/register')} />
+          </TouchableOpacity>
         </View>
-
-        <AuthButton title="Login" onPress={() => login(user)} />
-
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Don’t have an Account?</Text>
-          <AuthLink label=" Sign up" onPress={() => router.navigate('/(auth)/register')} />
-        </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -169,12 +241,13 @@ const styles = StyleSheet.create({
   form: {
     padding: 30,
     marginTop: 20,
+    paddingBottom: 25
   },
   label: {
     fontSize: 14,
     color: '#333',
-    marginBottom: 5,
-    marginTop: 20,
+    marginBottom: 4,
+    marginTop: 18,
   },
   options: {
     flexDirection: 'row',
@@ -185,7 +258,7 @@ const styles = StyleSheet.create({
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 25,
+    marginTop: 20,
   },
   signupText: {
     fontSize: 13,

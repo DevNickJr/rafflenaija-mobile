@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { AxiosResponse } from 'axios';
 import { useSession } from '@/providers/SessionProvider';
+import { apiRefreshToken } from '@/services/AuthService';
 
 interface State {
   onSuccess?: (data: any, variables?: any, context?: any) => void;
@@ -27,7 +28,7 @@ const useMutate = <T, K>(
     ...rest
   }: State,
 ) => {
-  const { access_token, signOut } = useSession();
+  const { access_token, refresh_token, signOut, refreshToken } = useSession();
 
   const Mutation = useMutation<K, K, T>({
     mutationFn: async (data: T) => {
@@ -43,7 +44,7 @@ const useMutate = <T, K>(
       //   throw new Error(response?.data?.message)
       //   }
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: async (data, variables, context) => {
       // console.log("successful", data)
       if (showSuccessMessage) {
         // toast.success(data?.message);
@@ -57,30 +58,48 @@ const useMutate = <T, K>(
         onSuccess(data, variables, context);
       }
     },
-    onError: (error: any, variables, context) => {
-      // console.log("error", error)
-      // console.log("error2", showErrorMessage, error?.response?.data?.message)
+    onError: async (error: any, variables, context) => {
       const message =
-        error?.response?.data?.message ||
-        error?.response?.data?.data?.message ||
-        error?.response?.data?.detail;
+      error?.response?.data?.message ||
+      error?.response?.data?.data?.message ||
+      error?.response?.data?.detail;
+      console.log("error2", showErrorMessage, message, error?.response?.data?.message)
       if (typeof message === 'string') {
+        console.log("error", {error, message})
         if (message === 'Token Expired') {
-          Toast.show({
-            type: 'info',
-            text1: 'Token Expired. Log back in to access your account',
-          });
-          return signOut();
+          // handle refresh
+          try {
+            const refresh = await apiRefreshToken({ refresh: refresh_token || ''  })
+            console.log("refresh3", refresh?.data?.access)
+            if (refresh?.data?.access) {
+              refreshToken({
+                access_token: refresh?.data?.access,
+              });
+              // signIn
+            } else {
+              Toast.show({
+                type: 'info',
+                text1: 'Token Expired. Refresh Failed!',
+              });
+              return signOut();
+            }
+          } catch (error) {
+            Toast.show({
+              type: 'info',
+              text1: 'Token Expired. Refresh Failed!',
+            });
+            return signOut();
+          }
         } else if (showErrorMessage) {
           Toast.show({
-            type: 'info',
+            type: 'error',
             text1: message || 'An Error Occurred!',
           });
         }
       } else if (showErrorMessage) {
         Toast.show({
           type: 'info',
-          text1: error?.response?.data?.message[0] || 'An Error Occurred!',
+          text1: error?.response?.data?.message?.[0] || 'An Error Occurred!',
         });
       }
       if (onError) {
