@@ -34,6 +34,8 @@ const totalGapWidth = CARD_GAP * (NUM_CARDS - 1);
 const availableWidth = width - SIDE_PADDING - totalGapWidth;
 const cardSize = availableWidth / NUM_CARDS;
 
+const dynamicFontSize = Math.max(10, Math.min(cardSize * 0.2, 18));
+
 const codes = Array.from({ length: 26 }, (_, i) =>
   Array.from({ length: 9 }, (_, j) => `${String.fromCharCode(65 + i)}${j + 1}`),
 ).flat();
@@ -313,7 +315,7 @@ const styles = StyleSheet.create({
   },
   raffledText: {
     transform: [{ rotate: '-60deg' }],
-    fontSize: 16,
+    fontSize: dynamicFontSize,
     color: '#952524',
     textAlign: 'center',
   },

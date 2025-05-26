@@ -72,7 +72,7 @@ const DeactivateAccount: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
               </Text>
 
               <View style={styles.modalActions}>
-                <ModalBtn title="Cancle" onPress={onCancel} inverted />
+                <ModalBtn title="Cancel" onPress={onCancel} inverted />
                 <ModalBtn
                   title="OK"
                   onPress={() => {

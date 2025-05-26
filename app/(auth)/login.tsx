@@ -153,7 +153,7 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.light.primary} />
+      <StatusBar barStyle="default" backgroundColor={Colors.light.primary} />
 
       <WaveUI underlineTxt="Sign" restTxt="in" />
       <ScrollView>

@@ -122,7 +122,7 @@ const restrictAccountMutation = useMutate<IDuration, any>(
             </Text>
 
             <View style={styles.modalActions}>
-              <ModalBtn title="Cancle" onPress={onCancel} inverted />
+              <ModalBtn title="Cancel" onPress={onCancel} inverted />
               <ModalBtn title="OK" onPress={onConfirm} />
             </View>
           </View>

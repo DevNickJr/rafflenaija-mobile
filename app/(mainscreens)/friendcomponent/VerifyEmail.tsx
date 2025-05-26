@@ -5,11 +5,11 @@ import OtpBackend from '@/components/OtpBackend';
 
 type Props = {
   visible: boolean;
-  onCancle?: ((event: GestureResponderEvent) => void) | undefined;
+  onCancel?: ((event: GestureResponderEvent) => void) | undefined;
   onOk?: ((event: GestureResponderEvent) => void) | undefined;
 };
 
-const VerifyEmail = ({ visible = true, onCancle, onOk }: Props) => {
+const VerifyEmail = ({ visible = true, onCancel, onOk }: Props) => {
   const [code, setCode] = useState('');
   const [pinReady, setPinReady] = useState(false);
 
@@ -31,7 +31,7 @@ const VerifyEmail = ({ visible = true, onCancle, onOk }: Props) => {
           />
 
           <View style={styles.modalActions}>
-            <ModalBtn title="Cancle" onPress={onCancle} inverted />
+            <ModalBtn title="Cancel" onPress={onCancel} inverted />
             <ModalBtn title="Verify" onPress={(event) => VerificationLogic(event)} />
           </View>
         </View>

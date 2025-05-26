@@ -2,6 +2,7 @@ import BackButton from '@/components/BackButton';
 import { SafeView } from '@/components/SafeView';
 import { useSession } from '@/providers/SessionProvider';
 import { Redirect, Stack } from 'expo-router';
+import { View } from 'react-native';
 
 export default function MainLayout() {
   const value = useSession();
@@ -36,9 +37,10 @@ export default function MainLayout() {
           // headerBackVisible: false,
           headerLeft: () => <BackButton label=''/>,
           headerTitleAlign: 'center',
-          // headerStyle: {
-          //   backgroundColor: 'transparent',
-          // },
+          headerStyle: {
+            backgroundColor: 'transparent',
+          },
+          headerBackground:()=><View style={{elevation:0, backgroundColor:"#fff"}}/>
           // headerTransparent: true,
           // headerShown: false, // No header for auth screens (cleaner)
         }}

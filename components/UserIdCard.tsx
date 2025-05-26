@@ -87,7 +87,7 @@ const UserIdCard = () => {
         <Text style={styles.txtStyle}>{context?.phone_number}</Text>
 
         <View style={styles.balanceContainer}>
-          <Text style={[styles.txtStyle, { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={[styles.txtStyle, showBalance?undefined: { flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">
             {showBalance ? 
             <>
             NGN {context?.wallet_balance}

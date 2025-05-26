@@ -119,7 +119,7 @@ const VerifyAccountEmail = ({ visible = true, onClose, onOk }: Props) => {
             )
             }
             <View style={styles.modalActions}>
-                <ModalBtn title="Cancle" onPress={handleClose} inverted />
+                <ModalBtn title="Cancel" onPress={handleClose} inverted />
                 <ModalBtn title={verifyEmailMutation?.isPending ? 'Processing..' : "OK"} onPress={handleConfrim} />
             </View>
         </View>

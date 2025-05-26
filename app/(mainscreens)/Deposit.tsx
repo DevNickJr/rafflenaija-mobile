@@ -161,7 +161,7 @@ const Deposit = () => {
                   type: 'info',
                   text1: 'Payment Cancelled',
                 })
-                console.log('User cancelled')
+                console.log('User Cancelled')
               },
               onLoad: (res) => console.log('WebView Loaded:', res),
               onError: (err) => {
