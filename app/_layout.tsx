@@ -71,6 +71,7 @@ export default function RootLayout() {
         </ThemeProvider>
         {/* <StatusBar style="auto" /> */}
       </QueryClientProvider>
+      {/* <StatusBar style="dark" /> */}
     </PaystackProvider>
   );
 }

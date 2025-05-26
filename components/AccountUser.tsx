@@ -96,7 +96,7 @@ const AccountUser = () => {
             </View>
             {/* <Text style={styles.txtStyle}>{context?.phone_number}</Text> */}
             <View style={styles.balanceContainer}>
-                <Text style={[{ flex: 1, fontSize: 30 }]} numberOfLines={1} ellipsizeMode="tail">
+                <Text style={[{fontSize: 30 },showBalance?undefined: { flex: 1 }]} numberOfLines={2}>
                     {showBalance ? 
                     <>
                     ₦{Number(context?.wallet_balance)?.toFixed(2)}

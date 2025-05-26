@@ -125,7 +125,13 @@ const Transaction = () => {
   const [activeTab, setActiveTab] = useState<TabType>("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
-  const [dateModalOpen, setDateModalOpen] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState<"from" | "to" | null>(null);
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
+  const [tempFromDate, setTempFromDate] = useState<Date>(new Date());
+  const [tempToDate, setTempToDate] = useState<Date>(new Date());
+  // const [dateModalOpen, setDateModalOpen] = useState(false)
   
   const { limit, onPaginationChange, page, pagination } = usePagination();
   const { sorting, onSortingChange, field, order } = useSorting();
@@ -143,22 +149,20 @@ const Transaction = () => {
   })
 
     const [date, setDate] = useState(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
+    
+
+    // const [showDatePicker, setShowDatePicker] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
   
   
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-      setShowDatePicker(false);
-      if (selectedDate) setDate(selectedDate);
-    };
   
     return (
       <>
-        <Stack.Screen
+        {/* <Stack.Screen
           options={{
             title: 'Transactions',
           }}
-        />
+        /> */}
         {/* <SafeAreaView style={styles.container}> */}
           <View style={{flex:1, paddingHorizontal:10}}>
             {/* Filter Buttons + Date Picker */}
@@ -184,24 +188,103 @@ const Transaction = () => {
                 </TouchableOpacity>
               ))}
       
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 onPress={() => setShowDatePicker(true)}
                 style={styles.datePickerBtn}
               >
                 <Text style={styles.filterBtnText}>
                   {date.toISOString().split('T')[0]}
                 </Text>
+              </TouchableOpacity> */}
+              <TouchableOpacity
+                onPress={() => {
+                  setTempFromDate(fromDate || new Date());
+                  setTempToDate(toDate || new Date());
+                  setDateModalOpen(true);
+                }}
+                style={styles.datePickerBtn}
+              >
+                <Text style={styles.filterBtnText}>Date</Text>
               </TouchableOpacity>
             </View>
-    
-          {showDatePicker && (
+          
+          {/* Date Modal */}
+          {dateModalOpen && (
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <Text style={styles.modalTitle}>Select Date Range</Text>
+
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker('from')}
+                  style={styles.modalDateButton}
+                >
+                  <Text>From: {tempFromDate.toDateString()}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker('to')}
+                  style={styles.modalDateButton}
+                >
+                  <Text>To: {tempToDate.toDateString()}</Text>
+                </TouchableOpacity>
+
+                {showDatePicker === 'from' && (
+                  <DateTimePicker
+                    value={tempFromDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                    onChange={(e, date) => {
+                      if (date) setTempFromDate(date);
+                      setShowDatePicker(null);
+                    }}
+                  />
+                )}
+
+                {showDatePicker === 'to' && (
+                  <DateTimePicker
+                    value={tempToDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                    onChange={(e, date) => {
+                      if (date) setTempToDate(date);
+                      setShowDatePicker(null);
+                    }}
+                  />
+                )}
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={styles.modalApplyBtn}
+                    onPress={() => {
+                      setFromDate(tempFromDate);
+                      setToDate(tempToDate);
+                      setStartDate(tempFromDate.toISOString().split('T')[0]);
+                      setEndDate(tempToDate.toISOString().split('T')[0]);
+                      setDateModalOpen(false);
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>Apply</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalCancelBtn}
+                    onPress={() => setDateModalOpen(false)}
+                  >
+                    <Text style={{ color: 'black' }}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* {showDatePicker && (
             <DateTimePicker
               value={date}
               mode="date"
               display={Platform.OS === 'ios' ? 'inline' : 'default'}
               onChange={handleDateChange}
             />
-          )}
+          )} */}
     
           {/* Transaction Table */}
           <ScrollView horizontal>
@@ -372,5 +455,60 @@ const styles = StyleSheet.create({
     pageBtnText: {
         color: '#000',
     },
+    // Date Form Styles
+    modalOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 999,
+    },
+    
+    modalContainer: {
+      backgroundColor: '#fff',
+      padding: 20,
+      borderRadius: 10,
+      width: '85%',
+      elevation: 5,
+    },
+    
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    
+    modalDateButton: {
+      padding: 10,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 5,
+      marginBottom: 10,
+    },
+    
+    modalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 20,
+    },
+    
+    modalApplyBtn: {
+      backgroundColor: 'green',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 5,
+    },
+    
+    modalCancelBtn: {
+      backgroundColor: '#ddd',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 5,
+    },
+    
   });
   

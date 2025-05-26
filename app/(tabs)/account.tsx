@@ -7,6 +7,7 @@ import { useSession } from '@/providers/SessionProvider';
 import { Href, router } from 'expo-router';
 import { SafeView } from '@/components/SafeView';
 import AccountUser from '@/components/AccountUser';
+import { StatusBar } from 'expo-status-bar';
 
 type MenuItem = {
   title: string;

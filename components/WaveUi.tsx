@@ -4,6 +4,7 @@ import React from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
+import Logo from "@/assets/images/LogoImage.svg"
 
 const { width } = Dimensions.get('window');
 
@@ -16,7 +17,15 @@ type Props = {
 const WaveUI = ({ underlineTxt, restTxt, size = 38 }: Props) => {
   return (
     <View style={styles.container}>
-      <View style={{ backgroundColor: Colors.light.primary, height: restTxt === 'up' ? 200 : 200  }}>
+      <View style={{ backgroundColor: Colors.light.primary, height: restTxt === 'up' ? 200 : 200, alignItems:"center", justifyContent:"center"  }}>
+        <Logo 
+          width={width*0.6} height={width*0.4} 
+          style={{
+            // backgroundColor:"blue",
+            position:"absolute",
+            zIndex:50
+          }}
+        />
         <Svg
           height={restTxt === 'up' ? "40%" : "60%" }
           width="100%"
