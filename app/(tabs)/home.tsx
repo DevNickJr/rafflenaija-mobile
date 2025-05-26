@@ -2,35 +2,28 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView,
   TouchableOpacity,
-  Image,
   Dimensions,
   FlatList,
-  ListRenderItem,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   ScrollView,
-  Modal,
-  ImageSourcePropType,
   ActivityIndicator,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
-import UserIdCard from '@/components/UserIdCard';
+import React, { useEffect, useState } from 'react';
 import { Colors } from '@/constants/Colors';
 import { SafeView } from '@/components/SafeView';
-import { IBanner, ICategory, IGame, IImage, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
+import { ICategory, IGame, IImage, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
 import useFetch from '@/hooks/useFetch';
 import { apiGetCategories, apiGetGames } from '@/services/GameService';
-import { apiGetBannerItems } from '@/services/AdminService';
-import { Entypo, Ionicons } from '@expo/vector-icons';
-import ModalComponent from '@/components/ModalComponent';
+import { Entypo } from '@expo/vector-icons';
+// import ModalComponent from '@/components/ModalComponent';
 import RaffleModal from '@/components/RaffleModal';
 import { useSession } from '@/providers/SessionProvider';
 import { apiGetUser } from '@/services/AuthService';
 import Toast from 'react-native-toast-message';
 import Profile from '@/components/Profile';
+import ImageGalleryModal from '@/components/ImageGalleryModal';
+import Banner from '@/components/Banner';
 
 const { width } = Dimensions.get('screen');
 const NUM_CARDS = 5;
@@ -41,52 +34,14 @@ const totalGapWidth = CARD_GAP * (NUM_CARDS - 1);
 const availableWidth = width - SIDE_PADDING - totalGapWidth;
 const cardSize = availableWidth / NUM_CARDS;
 
-interface IBannerV2 {
-  id: number;
-  image: ImageSourcePropType;
-}
-
-// const slideImages: IBannerV2[] = [
-//   { id: 1, image: require('@/assets/images/favicon.png') },
-//   { id: 2, image: require('@/assets/images/react-logo.png') },
-//   { id: 3, image: require('@/assets/images/homelogo.png') },
-// ];
-
-// const categories = [
-//   'Powerbank',
-//   'Headphones',
-//   'Speakers',
-//   'Smartwatches',
-//   'Tablets',
-//   'Gaming Consoles',
-//   'Phone Cases',
-//   'Portable Mini Fan',
-//   'Bluetooth Earpiece',
-//   'Wireless Mouse',
-//   'Webcam Cover',
-//   'Digital Alarm Clock',
-//   'Magnetic Phone Mount',
-//   'Car Phone Holder',
-// ];
-
 const codes = Array.from({ length: 26 }, (_, i) =>
   Array.from({ length: 9 }, (_, j) => `${String.fromCharCode(65 + i)}${j + 1}`),
 ).flat();
 
 const HomeScreen = () => {
   const { dispatch, access_token, refresh_token, ...context } = useSession()
-  // const flatListRef = useRef<FlatList<string>>(null);
-  const bannerRef = useRef<FlatList<IBanner>>(null);
-  const [activeDot, setActiveDot] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
-
-  // Modal Details
-  const [showImageModal, setShowImageModal]=useState(true)
-  const [modalImgIdx, setModalImgIdx]=useState(0)
-  const [showNotifyModal, setShowNotifyModal]=useState(false)
-  
-  
-
+  const [showImageModal, setShowImageModal]=useState(false)
   const { data: categories } = useFetch<IResponseData<ICategory[]>>({
     api: apiGetCategories,
     key: ["categories"],
@@ -125,35 +80,12 @@ const HomeScreen = () => {
     enabled: !!selectedCategory?.id
   })
 
-  const { data: banners } = useFetch<IResponseData<IBanner[]>>({
-    api: apiGetBannerItems,
-    key: ["banners"],
-  })
-  
   useEffect(() => {
     if (categories?.data) {
         setSelectedCategory(categories?.data[0])
       }
   }, [categories]);
 
-  // Auto-slide logic
-  useEffect(() => {
-    if (!banners?.data?.length) return;
-    const interval = setInterval(() => {
-      setActiveDot((prev) => {
-        const next = (prev + 1) % (banners?.data?.length || 1);
-        bannerRef.current?.scrollToIndex({ index: next, animated: true });
-        return next;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const getItemLayout = (_: any, index: number) => ({
-    length: width,
-    offset: (width) * index,
-    index,
-  });
 
   const [ticket, setTicket] = useState<IRaffleTicket | null>(null)
       
@@ -173,62 +105,13 @@ const HomeScreen = () => {
     setImages(images)
     setShowImageModal(true)
   }
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (width));
-    setActiveDot(index);
-  };
-
-  const renderDotIndicator = () => (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
-      {banners?.data?.map((_, index) => (
-        <View
-          key={index}
-          style={{
-            height: 10,
-            width: 10,
-            borderRadius: 5,
-            backgroundColor: activeDot === index ? '#061023' : 'white',
-            marginHorizontal: 5,
-          }}
-        />
-      ))}
-    </View>
-  );
-
-  const renderBannerItem: ListRenderItem<IBanner> = ({ item }) => (
-    <Image
-      src={item.image}
-      style={{ width: width, height: 210, borderRadius: 10 }}
-      resizeMode="stretch"
-    />
-  );
-
-  // const renderCodeItem: ListRenderItem<string> = ({ item }) => {
-  //   const isRaffled = item.includes('1');
-  //   return (
-  //     <TouchableOpacity
-  //       style={[
-  //         {
-  //           width: cardSize,
-  //           height: cardSize,
-  //           margin: 4
-  //         },
-  //         styles.rafCard,
-  //         isRaffled && styles.raffledCard
-  //       ]}
-  //     >
-  //       <Text style={isRaffled ? styles.raffledText : styles.normalText}>
-  //         {isRaffled ? 'Raffled' : item}
-  //       </Text>
-  //     </TouchableOpacity>
-  //   );
-  // };
+ 
   const CodeCard = React.memo(({ item, index }: { item: ITicket & { price: string }; index: number; }) => {
     const isRaffled = item.status != "active";
+
     return (
       <TouchableOpacity
-        onPress={() => handleRaffle(item.code, item.price)}
+        onPress={() => !isRaffled ? handleRaffle(item.code, item.price) : Toast.show({ type: 'info', text1: 'This card has already been raffled' })}
         style={[
           {
             width: cardSize,
@@ -246,8 +129,6 @@ const HomeScreen = () => {
       </TouchableOpacity>
     );
   });
-  const renderCodeItem = ({ item, index }: { item: ITicket & { price: string }; index: number }) => <CodeCard item={item} index={index} />;
-  // const renderCodeItem: ListRenderItem<ITicket> = ({ item, index }) => <CodeCard item={item} index={index} />;
 
   const renderHeader = () => (
     <View style={{ backgroundColor: '#f4f7f9', paddingHorizontal: 10 }}>
@@ -278,24 +159,12 @@ const HomeScreen = () => {
       </View> */}
     </View>
   );
-  const renderBanner = () => (
-   <>
-         {/* Banner */}
-      <FlatList
-        ref={bannerRef}
-        data={banners?.data || []}
-        renderItem={renderBannerItem}
-        horizontal
-        keyExtractor={(item, i) => `${item.id}-${i}`}
-        pagingEnabled
-        getItemLayout={getItemLayout}
-        onScroll={handleScroll}
-        showsHorizontalScrollIndicator={false}
-      />
-
-      {renderDotIndicator()}
-   </>
-  );
+  // const renderBanner = () => (
+  //  <>
+  //        {/* Banner */}
+    
+  //  </>
+  // );
 
   return (
     <SafeView style={{ backgroundColor:"#f4f7f9" }}>
@@ -303,7 +172,7 @@ const HomeScreen = () => {
       {renderHeader()}
       <ScrollView contentContainerStyle={styles.container}>
         <>
-          {renderBanner()}
+          <Banner />
           {
               isLoadingGames?
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
@@ -314,16 +183,16 @@ const HomeScreen = () => {
               <View key={index}>
                  {/* Random Select Row */}
                 <View style={styles.randomRow}>
-                  <Text style={{ fontSize: 16, fontWeight: '600', maxWidth: '60%' }}>{selectedCategory?.name} - {game.name}</Text>
+                  <Text style={{ fontSize: 16, fontWeight: '600', flexShrink: 1 }}>{selectedCategory?.name} - {game.name}</Text>
                   {/* <TouchableOpacity style={styles.randomBtn}>
                     <Text style={{ color: Colors.light.primary }}>Random Select</Text>
                   </TouchableOpacity> */}
                   <TouchableOpacity 
-                    style={{flexDirection:"row",gap:4,alignItems:"center"}}
+                    style={{flexDirection:"row",gap:6,alignItems:"center"}}
                     onPress={()=>handleOpenImageModal(game?.images)}
                   >
-                    <Entypo name="camera" size={24} color="#449444" />
-                    <Text style={{color:"#449444", fontSize:16,fontWeight:"600"}}>View Item Image</Text>
+                    <Entypo name="camera" size={16} color="#449444" />
+                    <Text style={{color:"#449444", fontSize:16, fontWeight:"600"}}>View Item Image</Text>
                   </TouchableOpacity>
                 </View>            
                 {
@@ -359,56 +228,14 @@ const HomeScreen = () => {
         </>
       </ScrollView>
 
-      <Modal
-          animationType="fade"
-          transparent={true}
-          visible={showImageModal}
-          onRequestClose={() => {
-            // Alert.alert('Modal has been closed.');
-            setImages([])
-            setShowImageModal(false);
-          }}>
-          <View style={styles.modalContainer}>
-            {/* Top Nav */}
-            <View style={styles.modalTopNNav}>
-              <TouchableOpacity 
-                // style={styles.modalImgBtn}
-                onPress={()=> {
-                  setImages([])
-                  setShowImageModal(false)
-                }}
-              >
-                <Ionicons name="close" size={30} color="#fff" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalInnerWrapper}>
-              <Image 
-                source={{ uri: images[modalImgIdx].image_url }}
-                style={{width:300, height:350,}}
-                resizeMode="stretch"
-              />
-              <View style={{flexDirection:"row", gap:6, justifyContent:"center"}}>
-                {
-                  images?.map((item, idx)=>(
-                    <TouchableOpacity 
-                      key={idx} onPress={()=> setModalImgIdx(idx)}
-                      style={styles.modalImgBtn}
-                    >
-                      <Image 
-                        source={{ uri: item.image_url }}
-                        style={{width:60, height:60,}}
-                        resizeMode="stretch"
-                      />
-                    </TouchableOpacity>
-                  ))
-                
-                }
-              </View>
-            </View>
-          </View>
-      </Modal>
+     <ImageGalleryModal
+        showImageModal={showImageModal}
+        setShowImageModal={setShowImageModal}
+        images={images}
+        setImages={setImages}
+     />
 
-      <ModalComponent
+      {/* <ModalComponent
         visible={showNotifyModal}
         title='Are you sure you want to raffle the Card?'
         content='You are about to pay to raffle the card'
@@ -416,6 +243,13 @@ const HomeScreen = () => {
         boldTxt={`₦${1000.00}`}
         onCancel={() => setShowNotifyModal(false)}
         onConfirm={()=>{}}
+      /> */}
+      <RaffleModal
+        visible={!!ticket}
+        onClose={() => setTicket(null)}
+        refetchGames={refetchGames}
+        refetchUser={refetchUser}
+        raffle={ticket}
       />
     </SafeView>
   );
@@ -446,6 +280,7 @@ const styles = StyleSheet.create({
   randomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 20,
     paddingVertical: 4,
     alignItems: 'center',
     marginTop: 20,
@@ -493,8 +328,7 @@ const styles = StyleSheet.create({
     gap:20
   },
   modalImgBtn:{
-    borderWidth:1,
-    borderColor:"#c0c0c0",
+    // borderColor:"#c0c0c0",
     padding:2,
     borderRadius:4
   },

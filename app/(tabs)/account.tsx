@@ -1,12 +1,11 @@
 // screens/AccountScreen.tsx
 import React, { ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { FontAwesome5, MaterialIcons, Ionicons, Entypo } from '@expo/vector-icons';
 import { useSession } from '@/providers/SessionProvider';
 import { Href, router } from 'expo-router';
 import { SafeView } from '@/components/SafeView';
-import UserIdCard from '@/components/UserIdCard';
 import AccountUser from '@/components/AccountUser';
 
 type MenuItem = {
