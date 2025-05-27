@@ -106,30 +106,26 @@ const Deposit = () => {
       dispatch({ type: "reference", payload: reference })
       dispatch({ type: "amount", payload: amount })
 
-      depositMutation.mutate({
+      depositMutation.mutate(
+        {
           email,
           reference,
           amount
-      })
-  }
-  
-  const depositMutation = useMutate<IDeposit, IResponseData<IReturnDeposit>>(
-      apiDeposit,
-      {
-        onSuccess: () => {
+        }, 
+        {
+          onSuccess: () => {
             Toast.show({
                 type: 'success',
                 text1: "Loading payment page"
             })
-
-            console.log({ popup })
-            console.log('success', user.email, user.reference,  Number(user.amount || 0)*100,)
-            
-
             popup.checkout({
-              email: user.email,
-              reference: user.reference,
-              amount: Number(user.amount || 0),
+              email,
+              reference,
+              amount: amount,
+              
+              // email: user.email,
+              // reference: user.reference,
+              // amount: Number(user.amount || 0),
               // plan: 'PLN_example123',
               // invoice_limit: 3,
               // subaccount: 'SUB_abc123',
@@ -173,7 +169,13 @@ const Deposit = () => {
               }
             });
             // payNow({ })
-        },
+          },
+      })
+  }
+  
+  const depositMutation = useMutate<IDeposit, IResponseData<IReturnDeposit>>(
+      apiDeposit,
+      {
         showErrorMessage: true,
         requireAuth: true
       }

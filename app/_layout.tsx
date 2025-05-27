@@ -48,7 +48,7 @@ export default function RootLayout() {
   
 
   return (
-    <PaystackProvider defaultChannels={channels} publicKey={process.env.EXPO_PUBLIC_PAYMENT_KEY || ''}>
+    <PaystackProvider defaultChannels={channels} publicKey={process.env.EXPO_PUBLIC_PAYMENT_KEY || 'pk_live_3a1ef3cb30186d97964bf0e333e7cb7e01714e55'}>
       <QueryClientProvider client={queryClient}>
         {/* your navigators or screens */}
         <ThemeProvider value={DefaultTheme}>
