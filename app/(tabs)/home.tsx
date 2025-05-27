@@ -168,6 +168,7 @@ const HomeScreen = () => {
   //  </>
   // );
 
+  console.log({ games })
   return (
     <SafeView style={{ backgroundColor:"#f4f7f9" }}>
     {/* <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android" ? 20 : 0 }}> */}
