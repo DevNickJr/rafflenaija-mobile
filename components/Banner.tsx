@@ -43,7 +43,7 @@ const Banner = () => {
         });
         }, 4000);
         return () => clearInterval(interval);
-    }, []);
+    }, [banners?.data]);
 
 
     const renderBannerItem: ListRenderItem<IBanner> = ({ item }) => (
@@ -53,6 +53,8 @@ const Banner = () => {
           resizeMode="stretch"
         />
       );
+      
+      if (!banners?.data?.length) return null
     return (
         <>
             <FlatList

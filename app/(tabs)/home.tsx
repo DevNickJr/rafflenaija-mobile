@@ -168,7 +168,6 @@ const HomeScreen = () => {
   //  </>
   // );
 
-  console.log({ games })
   return (
     <SafeView style={{ backgroundColor:"#f4f7f9" }}>
     {/* <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android" ? 20 : 0 }}> */}
@@ -177,7 +176,7 @@ const HomeScreen = () => {
         <>
           <Banner />
           {
-              isLoadingGames?
+              isLoadingGames ?
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
                   <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
                 </View>
