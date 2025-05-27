@@ -21,88 +21,89 @@ import { apiGetTransactions } from '@/services/WalletService';
 import useFetch from '@/hooks/useFetch';
 import { formatDate } from '@/lib/date';
 import { Colors } from '@/constants/Colors';
-const transactions = [
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Deposit',
-    id: '1234RNtrd1081',
-    amount: '+10,000,000.00',
-    status: 'Success',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Withdrawal',
-    id: '1234RNtrd1081',
-    amount: '-200.00',
-    status: 'Pending',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '-100.00',
-    status: 'Failed',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '-100.00',
-    status: 'Success',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '-200.00',
-    status: 'Success',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '+100.00',
-    status: 'Success',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '+1000.00',
-    status: 'Success',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '-200.00',
-    status: 'Failed',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '+1000.00',
-    status: 'Failed',
-  },
-  {
-    time: '21/12/2023 10:20pm',
-    type: 'Bet Played',
-    id: '1234RNtrd1081',
-    amount: '-200.00',
-    status: 'Pending',
-  },
-];
+import Toast from 'react-native-toast-message';
+// const transactions = [
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Deposit',
+//     id: '1234RNtrd1081',
+//     amount: '+10,000,000.00',
+//     status: 'Success',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Withdrawal',
+//     id: '1234RNtrd1081',
+//     amount: '-200.00',
+//     status: 'Pending',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '-100.00',
+//     status: 'Failed',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '-100.00',
+//     status: 'Success',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '-200.00',
+//     status: 'Success',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '+100.00',
+//     status: 'Success',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '+1000.00',
+//     status: 'Success',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '-200.00',
+//     status: 'Failed',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '+1000.00',
+//     status: 'Failed',
+//   },
+//   {
+//     time: '21/12/2023 10:20pm',
+//     type: 'Bet Played',
+//     id: '1234RNtrd1081',
+//     amount: '-200.00',
+//     status: 'Pending',
+//   },
+// ];
 
-const itemsPerPage = 10;
+// const itemsPerPage = 10;
 
-const sampleData = Array.from({ length: 40 }).map((_, i) => ({
-    time: `2024-05-0${(i % 9) + 1}`,
-    type: i % 3 === 0 ? 'Deposit' : i % 3 === 1 ? 'Withdrawal' : 'Game',
-    id: `TXN-${i + 1}`,
-    amount: `$${(Math.random() * 100).toFixed(2)}`,
-    status: i % 2 === 0 ? 'Completed' : 'Pending',
-  }));
+// const sampleData = Array.from({ length: 40 }).map((_, i) => ({
+//     time: `2024-05-0${(i % 9) + 1}`,
+//     type: i % 3 === 0 ? 'Deposit' : i % 3 === 1 ? 'Withdrawal' : 'Game',
+//     id: `TXN-${i + 1}`,
+//     amount: `$${(Math.random() * 100).toFixed(2)}`,
+//     status: i % 2 === 0 ? 'Completed' : 'Pending',
+//   }));
   
 
 const getStatusStyle = (status: string) => {
@@ -121,16 +122,16 @@ const getStatusStyle = (status: string) => {
 type TabType = "" | "deposit" | "withdrawal" | "bet"
 const tabs: TabType[] = ['', 'deposit', 'withdrawal', 'bet']
 
+const today = new Date()
+
 const Transaction = () => {
   const [activeTab, setActiveTab] = useState<TabType>("")
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [tempEndDate, setTempEndDate] = useState<Date>()
+  const [tempStartDate, setTempStartDate] = useState<Date>()
   const [showDatePicker, setShowDatePicker] = useState<"from" | "to" | null>(null);
   const [dateModalOpen, setDateModalOpen] = useState(false);
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
-  const [tempFromDate, setTempFromDate] = useState<Date>(new Date());
-  const [tempToDate, setTempToDate] = useState<Date>(new Date());
   // const [dateModalOpen, setDateModalOpen] = useState(false)
   
   const { limit, onPaginationChange, page, pagination } = usePagination();
@@ -145,7 +146,7 @@ const Transaction = () => {
           start_date: startDate,
           end_date: endDate,
       },
-      requireAuth: true
+      requireAuth: true,
   })
 
     const [date, setDate] = useState(new Date());
@@ -198,8 +199,6 @@ const Transaction = () => {
               </TouchableOpacity> */}
               <TouchableOpacity
                 onPress={() => {
-                  setTempFromDate(fromDate || new Date());
-                  setTempToDate(toDate || new Date());
                   setDateModalOpen(true);
                 }}
                 style={styles.datePickerBtn}
@@ -218,23 +217,32 @@ const Transaction = () => {
                   onPress={() => setShowDatePicker('from')}
                   style={styles.modalDateButton}
                 >
-                  <Text>From: {tempFromDate.toDateString()}</Text>
+                  <Text>From: {tempStartDate?.toDateString()}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => setShowDatePicker('to')}
                   style={styles.modalDateButton}
                 >
-                  <Text>To: {tempToDate.toDateString()}</Text>
+                  <Text>To: {tempEndDate?.toDateString()}</Text>
                 </TouchableOpacity>
 
                 {showDatePicker === 'from' && (
                   <DateTimePicker
-                    value={tempFromDate}
+                    value={tempStartDate || today}
                     mode="date"
                     display={Platform.OS === 'ios' ? 'inline' : 'default'}
                     onChange={(e, date) => {
-                      if (date) setTempFromDate(date);
+                      if (date) {
+                        if (date > today) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Start Date cannot be in the future',
+                          });
+                        } else {
+                          setTempStartDate(date)
+                        }
+                      };
                       setShowDatePicker(null);
                     }}
                   />
@@ -242,11 +250,20 @@ const Transaction = () => {
 
                 {showDatePicker === 'to' && (
                   <DateTimePicker
-                    value={tempToDate}
+                    value={tempEndDate || today}
                     mode="date"
                     display={Platform.OS === 'ios' ? 'inline' : 'default'}
                     onChange={(e, date) => {
-                      if (date) setTempToDate(date);
+                      if (date) {
+                        if (tempStartDate && date < tempStartDate) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'End Date cannot be before Start Date',
+                          });
+                        } else {
+                          setTempEndDate(date)
+                        }
+                      };
                       setShowDatePicker(null);
                     }}
                   />
@@ -256,10 +273,8 @@ const Transaction = () => {
                   <TouchableOpacity
                     style={styles.modalApplyBtn}
                     onPress={() => {
-                      setFromDate(tempFromDate);
-                      setToDate(tempToDate);
-                      setStartDate(tempFromDate.toISOString().split('T')[0]);
-                      setEndDate(tempToDate.toISOString().split('T')[0]);
+                      setStartDate(tempStartDate?.toISOString().split('T')[0] || '');
+                      setEndDate(tempEndDate?.toISOString().split('T')[0] || '');
                       setDateModalOpen(false);
                     }}
                   >
