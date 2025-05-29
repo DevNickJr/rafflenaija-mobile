@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
@@ -22,89 +23,7 @@ import useFetch from '@/hooks/useFetch';
 import { formatDate } from '@/lib/date';
 import { Colors } from '@/constants/Colors';
 import Toast from 'react-native-toast-message';
-// const transactions = [
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Deposit',
-//     id: '1234RNtrd1081',
-//     amount: '+10,000,000.00',
-//     status: 'Success',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Withdrawal',
-//     id: '1234RNtrd1081',
-//     amount: '-200.00',
-//     status: 'Pending',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '-100.00',
-//     status: 'Failed',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '-100.00',
-//     status: 'Success',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '-200.00',
-//     status: 'Success',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '+100.00',
-//     status: 'Success',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '+1000.00',
-//     status: 'Success',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '-200.00',
-//     status: 'Failed',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '+1000.00',
-//     status: 'Failed',
-//   },
-//   {
-//     time: '21/12/2023 10:20pm',
-//     type: 'Bet Played',
-//     id: '1234RNtrd1081',
-//     amount: '-200.00',
-//     status: 'Pending',
-//   },
-// ];
-
-// const itemsPerPage = 10;
-
-// const sampleData = Array.from({ length: 40 }).map((_, i) => ({
-//     time: `2024-05-0${(i % 9) + 1}`,
-//     type: i % 3 === 0 ? 'Deposit' : i % 3 === 1 ? 'Withdrawal' : 'Game',
-//     id: `TXN-${i + 1}`,
-//     amount: `$${(Math.random() * 100).toFixed(2)}`,
-//     status: i % 2 === 0 ? 'Completed' : 'Pending',
-//   }));
-  
+const { width } = Dimensions.get('screen');
 
 const getStatusStyle = (status: string) => {
   switch (status) {
@@ -319,7 +238,8 @@ const Transaction = () => {
                       <View style={{
                         justifyContent: 'center',
                         alignItems: 'center',
-                        marginVertical: 20
+                        marginVertical: 20,
+                        width,
                       }} className='text-center'>
                         {
                         isLoading ? 

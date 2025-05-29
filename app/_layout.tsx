@@ -17,6 +17,10 @@ import Constants from 'expo-constants';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 const channels: ("bank" | "card" | "ussd" | "qr" | "mobile_money" | "bank_transfer" | "eft" | "apple_pay")[] = ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
 
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
 
 SplashScreen.preventAutoHideAsync();
 // Create a client

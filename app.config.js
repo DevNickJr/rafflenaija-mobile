@@ -1,7 +1,6 @@
 module.exports = ({ config }) => {
   return {
     ...config,
-
     "name": "rafflenaija",
     "slug": "rafflenaija",
     "version": "1.0.0",
@@ -35,9 +34,14 @@ module.exports = ({ config }) => {
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon2.png",
-          "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "image": "./assets/images/splash-icon2.png",
+            "backgroundColor": "#ffffff"
+          },
+          "imageWidth": 200,
+
         }
       ],
       [

@@ -49,7 +49,7 @@ const Banner = () => {
     const renderBannerItem: ListRenderItem<IBanner> = ({ item }) => (
         <Image
           src={item.image}
-          style={{ width: width, height: 210, borderRadius: 10 }}
+          style={{ width: width, height: 210, borderRadius: 10, backgroundColor: 'black' }}
           resizeMode="stretch"
         />
       );
@@ -57,6 +57,7 @@ const Banner = () => {
       if (!banners?.data?.length) return null
     return (
         <>
+        <View>
             <FlatList
                 ref={bannerRef}
                 data={banners?.data || []}
@@ -68,6 +69,7 @@ const Banner = () => {
                 onScroll={handleScroll}
                 showsHorizontalScrollIndicator={false}
             />
+        </View>
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10 }}>
                 {banners?.data?.map((_, index) => (
                     <View
@@ -76,8 +78,9 @@ const Banner = () => {
                         height: 10,
                         width: 10,
                         borderRadius: 5,
-                        backgroundColor: activeDot === index ? '#061023' : 'white',
+                        backgroundColor: activeDot === index ? '#061023' : 'gray',
                         marginHorizontal: 5,
+
                     }}
                     />
                 ))}

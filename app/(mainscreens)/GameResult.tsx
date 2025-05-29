@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Platform,
   SafeAreaView,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -21,17 +22,9 @@ import useFetch from '@/hooks/useFetch';
 import { usePagination } from '@/hooks/usePagination';
 import { useSorting } from '@/hooks/useSorting';
 import { Colors } from '@/constants/Colors';
+import Toast from 'react-native-toast-message';
 
-const DATA = Array.from({ length: 20 }).map((_, i) => ({
-  id: i.toString(),
-  gameId: i % 2 === 0 ? 'RN-123460' : 'RN-000123',
-  gamePlayed: 'PowerBank',
-  phoneNumber: '080******32',
-  stake: '100 NGN',
-  time:'1 min ago',
-  status: i % 2 === 0 ? 'Lost' : 'Won',
-  
-}));
+const { width } = Dimensions.get('screen');
 
 const GameRow = ({ item }: { item: IGameResult }) => (
   <View style={[styles.row, styles.won ]}>
@@ -68,17 +61,19 @@ const GameRow = ({ item }: { item: IGameResult }) => (
   </View>
 );
 
+const today = new Date()
+
 const GameResults=()=> {
-  const [activeTab, setActiveTab] = useState(0);
-  const [searchTxt, setSearchTxt] = useState("")
+  const [activeTab, setActiveTab] = useState<"finished" | "pending" | "">("")
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [tempEndDate, setTempEndDate] = useState<Date>()
+  const [tempStartDate, setTempStartDate] = useState<Date>()
+  const [showDatePicker, setShowDatePicker] = useState<"from" | "to" | null>(null);
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [swapId, setSwapId] = useState("")
+  const [search, setSearch] = useState("")
   const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) setDate(selectedDate);
-  };
 
   const dateRef = useRef<null | HTMLInputElement>(null)
     
@@ -87,19 +82,31 @@ const GameResults=()=> {
 
   const { data: results, isLoading } = useFetch<IResponseData<IGameResult[]>>({
       api: apiGetResults,
-      key: ["game-results", String(pagination.pageIndex)],
+      key: ["game-results", pagination.pageIndex, startDate, endDate, search],
       param: {
           page: pagination.pageIndex + 1,
+          type: activeTab,
+          start_date: startDate,
+          end_date: endDate,
+          search,
           // type: activeTab
       },
       // requireAuth: true
   })
+
+  useEffect(() => {
+    if (page != 1) {
+      onPaginationChange(1)
+    }
+  }, [startDate, endDate, activeTab])
+
+  console.log({ results })
   
   return (
     <>
     <Stack.Screen
       options={{
-        title: 'Game Results',
+        title: 'Game Results (Public)',
       }}
     />
     {/* <SafeAreaView style={{flex:1, backgroundColor:"#fff"}}> */}
@@ -114,53 +121,49 @@ const GameResults=()=> {
         <View style={styles.searchFilterRow}>
           <TextInput 
             style={styles.input} placeholder="Search for Game ID"
-            value={searchTxt} onChangeText={(txt)=>setSearchTxt(txt)} 
+            value={search} onChangeText={(txt)=>setSearch(txt)} 
           />
           {
-            searchTxt.length>0?
+            search.length>0?
           <TouchableOpacity 
-            style={styles.dateFilter} onPress={()=>setSearchTxt("")}>
+            style={styles.dateFilter} onPress={()=>setSearch("")}>
             <Text style={styles.dateFilterText}>Search</Text>
           </TouchableOpacity>:
           <TouchableOpacity 
-            style={styles.dateFilter} onPress={() => setShowDatePicker(true)}>
+            style={styles.dateFilter} onPress={() => setDateModalOpen(true)}>
             <Text style={styles.dateFilterText}>Pick Date</Text>
           </TouchableOpacity>
           }
         </View>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-            onChange={handleDateChange}
-          />
-        )}
-
-        <ScrollView horizontal>
-          <ScrollView style={{ width: '100%' }}>
-              {
-                (!results?.data || !results?.data?.length)
-                ? 
-                <View style={{
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginVertical: 20
-                }} className='text-center'>
-                  {
-                  isLoading ? 
-                    <ActivityIndicator size="large" color={Colors.light.primary} />
-                    :
-                    <Text>No result</Text>
-                  }
-              
-                </View>
-                :
-              results?.data?.map(item => (
-              <GameRow item={item} key={item.game_id} />
-            ))}
-          </ScrollView>
+        <ScrollView horizontal style={{ flex: 1, width: '100%' }}>
+          <View style={{ flex: 1 }}>
+            {
+                 (!results?.data || !results?.data?.length)
+                 ? 
+                 <View style={{
+                   justifyContent: 'center',
+                   alignItems: 'center',
+                   marginVertical: 20,
+                   width: width,
+                 }} className='text-center'>
+                   {
+                   isLoading ? 
+                     <ActivityIndicator size="large" color={Colors.light.primary} />
+                     :
+                     <Text style={{ textAlign: "center"}}>No result</Text>
+                   }
+               
+                 </View>
+                 :
+              <ScrollView style={{ width: '100%', flex: 1 }}>
+                {
+                  results?.data?.map(item => (
+                  <GameRow item={item} key={item.game_id} />
+                ))}
+              </ScrollView>
+            }
+          </View>
         </ScrollView>
         {
             Number(results?.count || 0) > limit &&
@@ -175,6 +178,89 @@ const GameResults=()=> {
                 textStyle={{color:"black"}}
               />
             }
+              {dateModalOpen && (
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <Text style={styles.modalTitle}>Select Date Range</Text>
+
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker('from')}
+                  style={styles.modalDateButton}
+                >
+                  <Text>From: {tempStartDate?.toDateString()}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setShowDatePicker('to')}
+                  style={styles.modalDateButton}
+                >
+                  <Text>To: {tempEndDate?.toDateString()}</Text>
+                </TouchableOpacity>
+
+                {showDatePicker === 'from' && (
+                  <DateTimePicker
+                    value={tempStartDate || today}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                    onChange={(e, date) => {
+                      if (date) {
+                        if (date > today) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Start Date cannot be in the future',
+                          });
+                        } else {
+                          setTempStartDate(date)
+                        }
+                      };
+                      setShowDatePicker(null);
+                    }}
+                  />
+                )}
+
+                {showDatePicker === 'to' && (
+                  <DateTimePicker
+                    value={tempEndDate || today}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                    onChange={(e, date) => {
+                      if (date) {
+                        if (tempStartDate && date < tempStartDate) {
+                          Toast.show({
+                            type: 'error',
+                            text1: 'End Date cannot be before Start Date',
+                          });
+                        } else {
+                          setTempEndDate(date)
+                        }
+                      };
+                      setShowDatePicker(null);
+                    }}
+                  />
+                )}
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={styles.modalApplyBtn}
+                    onPress={() => {
+                      setStartDate(tempStartDate?.toISOString().split('T')[0] || '');
+                      setEndDate(tempEndDate?.toISOString().split('T')[0] || '');
+                      setDateModalOpen(false);
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>Apply</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalCancelBtn}
+                    onPress={() => setDateModalOpen(false)}
+                  >
+                    <Text style={{ color: 'black' }}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
       </View>
     {/* </SafeAreaView> */}
     </>
@@ -297,5 +383,59 @@ const styles = StyleSheet.create({
   },
   activePageText: {
     color: '#fff',
+  },
+  // Date Form Styles
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '85%',
+    elevation: 5,
+  },
+  
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  
+  modalDateButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  
+  modalApplyBtn: {
+    backgroundColor: 'green',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 5,
+  },
+  
+  modalCancelBtn: {
+    backgroundColor: '#ddd',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 5,
   },
 });
