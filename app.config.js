@@ -1,5 +1,6 @@
-{
-  "expo": {
+module.exports = ({ config }) => {
+  return {
+    ...config,
     "name": "rafflenaija",
     "slug": "rafflenaija",
     "version": "1.0.0",
@@ -9,7 +10,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.devnickjr.rafflenaija",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,9 +34,14 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon2.png",
-          "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "image": "./assets/images/splash-icon2.png",
+            "backgroundColor": "#ffffff"
+          },
+          "imageWidth": 200,
+
         }
       ],
       [
@@ -46,6 +56,8 @@
       "typedRoutes": true
     },
     "extra": {
+      publicPaymentKey: process.env.EXPO_PUBLIC_PAYMENT_KEY,
+      apiPrefix: process.env.EXPO_PUBLIC_API_ENDPOINT,
       "router": {
         "origin": false
       },
@@ -53,5 +65,5 @@
         "projectId": "4dbb14fe-821c-4f47-b3e1-7ed624daf173"
       }
     }
-  }
-}
+  };
+};

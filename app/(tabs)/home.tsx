@@ -9,7 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Colors } from '@/constants/Colors';
 import { SafeView } from '@/components/SafeView';
 import { ICategory, IGame, IImage, IRaffleTicket, IResponseData, ITicket, IUser } from '@/interfaces';
@@ -24,8 +24,10 @@ import Toast from 'react-native-toast-message';
 import Profile from '@/components/Profile';
 import ImageGalleryModal from '@/components/ImageGalleryModal';
 import Banner from '@/components/Banner';
+import Void from "@/assets/images/void.svg"
 
-const { width } = Dimensions.get('screen');
+
+const { width, height } = Dimensions.get('screen');
 const NUM_CARDS = 5;
 const CARD_GAP = 8; // margin: 4 on each side = 8 total
 const SIDE_PADDING = 20; // 20 left + 20 right from styles.container
@@ -44,12 +46,12 @@ const HomeScreen = () => {
   const { dispatch, access_token, refresh_token, ...context } = useSession()
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
   const [showImageModal, setShowImageModal]=useState(false)
-  const { data: categories } = useFetch<IResponseData<ICategory[]>>({
+  const { data: categories, isLoading: isLoadingCategories } = useFetch<IResponseData<ICategory[]>>({
     api: apiGetCategories,
     key: ["categories"],
   })
 
-  const { data: user, refetch: refetchUser } = useFetch<IResponseData<IUser>>({
+  const { data: user, refetch: refetchUser, isError: isUserError } = useFetch<IResponseData<IUser>>({
     api: apiGetUser,
     key: ["user"],
     requireAuth: true,
@@ -75,7 +77,7 @@ const HomeScreen = () => {
     }
   },[user, dispatch, access_token, refresh_token])
 
-  const { data: games, isLoading: isLoadingGames, refetch: refetchGames } = useFetch<IResponseData<IGame[]>>({
+  const { data: games, isLoading: isLoadingGames, refetch: refetchGames, isError } = useFetch<IResponseData<IGame[]>>({
     api: apiGetGames,
     key: ["games", selectedCategory?.id || ""],
     param: selectedCategory?.id,
@@ -135,6 +137,8 @@ const HomeScreen = () => {
   const renderHeader = () => (
     <View style={{ backgroundColor: '#f4f7f9', paddingHorizontal: 10 }}>
       <Profile />
+      
+
 
       {/* Categories */}
       <FlatList
@@ -168,6 +172,20 @@ const HomeScreen = () => {
   //  </>
   // );
 
+
+  const networkError = useMemo(() => {
+    if (isLoadingGames || isLoadingCategories || !!categories?.data?.length) {
+      return false;
+    }
+    if (isError && isUserError) {
+      return true;
+    }
+    if ((!games?.data || games?.data.length === 0) && (categories?.data || []).length === 0) {
+      return true;
+    }
+    return false;
+  }, [games?.data?.length, categories?.data?.length, isError, isLoadingGames, isLoadingCategories])
+
   return (
     <SafeView style={{ backgroundColor:"#f4f7f9" }}>
     {/* <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android" ? 20 : 0 }}> */}
@@ -176,56 +194,90 @@ const HomeScreen = () => {
         <>
           <Banner />
           {
-              isLoadingGames?
+              isLoadingGames ?
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
                   <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
                 </View>
                 :
-            games?.data?.map((game, index) => 
-              <View key={index}>
-                 {/* Random Select Row */}
-                <View style={styles.randomRow}>
-                  <Text style={{ fontSize: 16, fontWeight: '600', flexShrink: 1 }}>{selectedCategory?.name} - {game.name}</Text>
-                  {/* <TouchableOpacity style={styles.randomBtn}>
-                    <Text style={{ color: Colors.light.primary }}>Random Select</Text>
-                  </TouchableOpacity> */}
-                  <TouchableOpacity 
-                    style={{flexDirection:"row",gap:6,alignItems:"center"}}
-                    onPress={()=>handleOpenImageModal(game?.images)}
-                  >
-                    <Entypo name="camera" size={16} color="#449444" />
-                    <Text style={{color:"#449444", fontSize:16, fontWeight:"600"}}>View Item Image</Text>
-                  </TouchableOpacity>
-                </View>            
-                {
-                  game?.raffles[0]?.tickets?.length > 0 ? 
-                  <View style={styles.raffleContainer}>
+                (networkError) ? 
+                  <View style={{
+                    height: height * 0.7,
+                    // backgroundColor: 'red',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    gap: 10,
+                  }}>
+                    <Void 
+                      width={'70%'} 
+                      height={'50%'} 
+                      style={{
+                        // backgroundColor:"blue",
+                        // position:"absolute",
+                        // zIndex:50,
+                        // backgroundColor:"white", 
+            
+                      }}
+                    />
+                    {/* networkError */}
+                    <Text style={{fontSize:16, textAlign: 'center', fontWeight:"600"}}>No raffles available</Text>
+                    <Text style={{fontSize:16, textAlign: 'center', fontWeight:"600"}}>
+                      Check your internet connection and try again
+                    </Text>
+                  </View>
+                :
+                  !games?.data?.length ?
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                      <Text style={{ fontSize:16, fontWeight:"600", textAlign: 'center' }}>
+                        No raffles available
+                      </Text>
+                    </View>
+                    :
+                  games?.data?.map((game, index) => 
+                  <View key={index}>
+                    {/* Random Select Row */}
+                    <View style={styles.randomRow}>
+                      <Text style={{ fontSize: 16, fontWeight: '600', flexShrink: 1 }}>{selectedCategory?.name} - {game.name}</Text>
+                      {/* <TouchableOpacity style={styles.randomBtn}>
+                        <Text style={{ color: Colors.light.primary }}>Random Select</Text>
+                      </TouchableOpacity> */}
+                      <TouchableOpacity 
+                        style={{flexDirection:"row",gap:6,alignItems:"center"}}
+                        onPress={()=>handleOpenImageModal(game?.images)}
+                      >
+                        <Entypo name="camera" size={16} color="#449444" />
+                        <Text style={{color:"#449444", fontSize:16, fontWeight:"600"}}>View Item Image</Text>
+                      </TouchableOpacity>
+                    </View>            
                     {
-                      game?.raffles[0]?.tickets?.map((ticket, index) => (
-                        <CodeCard item={{
-                          ...ticket,
-                          price: game?.raffles[0]?.ticket_price
-                        }} index={index} key={index}/>
-                      ))
+                      game?.raffles[0]?.tickets?.length > 0 ? 
+                      <View style={styles.raffleContainer}>
+                        {
+                          game?.raffles[0]?.tickets?.map((ticket, index) => (
+                            <CodeCard item={{
+                              ...ticket,
+                              price: game?.raffles[0]?.ticket_price
+                            }} index={index} key={index}/>
+                          ))
+                      }
+                      </View>
+                      :
+                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                        <Text>No raffles available</Text>
+                      </View>
                   }
+                    {/* <FlatList
+                      data={game?.raffles[0]?.tickets || []}
+                      // ref={flatListRef}
+                      keyExtractor={(item, index) => `${item?.code}-${index}`}
+                      numColumns={5}
+                      renderItem={renderCodeItem}
+                      // ListHeaderComponent={renderHeader}
+                      contentContainerStyle={{ paddingBottom: 40 }}
+                      showsVerticalScrollIndicator={false}
+                    /> */}
                   </View>
-                  :
-                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
-                    <Text>No raffles available</Text>
-                  </View>
-              }
-                {/* <FlatList
-                  data={game?.raffles[0]?.tickets || []}
-                  // ref={flatListRef}
-                  keyExtractor={(item, index) => `${item?.code}-${index}`}
-                  numColumns={5}
-                  renderItem={renderCodeItem}
-                  // ListHeaderComponent={renderHeader}
-                  contentContainerStyle={{ paddingBottom: 40 }}
-                  showsVerticalScrollIndicator={false}
-                /> */}
-              </View>
-              )
+                  )
           }
         </>
       </ScrollView>

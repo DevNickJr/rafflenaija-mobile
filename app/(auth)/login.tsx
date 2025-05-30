@@ -50,9 +50,17 @@ export default function Login() {
       return router.push("/(tabs)/home");
     },
     onError(error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.data?.message ||
+        error?.response?.data?.detail || error?.message;
       console.log(error)
-      if (typeof error?.response?.data?.message === 'string') {
-        if (error?.response?.data?.message === 'Please verify your account') {
+      Toast.show({
+        type: 'error',
+        text1: message || 'An Error Occurred!',
+      });
+      if (typeof message === 'string') {
+        if (message === 'Please verify your account') {
           Toast.show({
             type: 'success',
             text1: 'Please verify your account',
@@ -61,12 +69,12 @@ export default function Login() {
         }
         Toast.show({
           type: 'error',
-          text1: error?.response?.data?.message || 'An Error Occurred!',
+          text1: message || 'An Error Occurred!',
         });
       } else {
         Toast.show({
           type: 'error',
-          text1: error?.response?.data?.message?.[0] || 'An Error Occurred!',
+          text1: error?.response?.data?.message?.[0] || error?.message || 'An Error Occurred!',
         });
       }
     },

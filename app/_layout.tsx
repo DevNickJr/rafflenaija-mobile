@@ -1,28 +1,33 @@
 import '../global.css';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PaystackProvider } from 'react-native-paystack-webview';
-import { useColorScheme } from '@/hooks/useColorScheme';
+// import { useColorScheme } from '@/hooks/useColorScheme';
 import { SessionProvider, useSession } from '@/providers/SessionProvider';
 import Toast from 'react-native-toast-message';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 const channels: ("bank" | "card" | "ussd" | "qr" | "mobile_money" | "bank_transfer" | "eft" | "apple_pay")[] = ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
 
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
 
 SplashScreen.preventAutoHideAsync();
 // Create a client
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // const colorScheme = useColorScheme();
   const { access_token, isLoading } = useSession();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -31,24 +36,18 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded && !isLoading) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, isLoading]);
 
-  if (!loaded) {
+  if (!loaded || isLoading) {
     return null;
   }
 
   
-  
-    if (access_token){
-
-    }
-  
-
   return (
-    <PaystackProvider defaultChannels={channels} publicKey={process.env.EXPO_PUBLIC_PAYMENT_KEY || ''}>
+    <PaystackProvider defaultChannels={channels} publicKey={Constants.expoConfig?.extra?.publicPaymentKey || 'pk_live_3a1ef3cb30186d97964bf0e333e7cb7e01714e55'}>
       <QueryClientProvider client={queryClient}>
         {/* your navigators or screens */}
         <ThemeProvider value={DefaultTheme}>

@@ -64,6 +64,7 @@ const useMutate = <T, K>(
       error?.response?.data?.data?.message ||
       error?.response?.data?.detail;
       console.log("error2", showErrorMessage, message, error?.response?.data?.message)
+      console.log("error", JSON.stringify(error)) 
       if (typeof message === 'string') {
         console.log("error", {error, message})
         if (message === 'Token Expired') {

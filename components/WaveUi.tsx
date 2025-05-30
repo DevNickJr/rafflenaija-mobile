@@ -1,7 +1,7 @@
 import { Colors } from '@/constants/Colors';
 import { Path1, Path2 } from '@/constants/Paths';
 import React from 'react';
-import { View, StyleSheet, Dimensions, Text } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, Image } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import Logo from "@/assets/images/LogoImage.svg"
@@ -18,12 +18,22 @@ const WaveUI = ({ underlineTxt, restTxt, size = 38 }: Props) => {
   return (
     <View style={styles.container}>
       <View style={{ backgroundColor: Colors.light.primary, height: restTxt === 'up' ? 200 : 200, alignItems:"center", justifyContent:"center"  }}>
+        {/* <Image source={require('@/assets/images/logo2.png')}
+          style={{ 
+            position:"absolute",
+            zIndex:50,
+            width: width*0.42, height: width*0.4,
+            // backgroundColor:"white", 
+            }} /> */}
+
         <Logo 
           width={width*0.6} height={width*0.4} 
           style={{
             // backgroundColor:"blue",
             position:"absolute",
-            zIndex:50
+            zIndex:50,
+            // backgroundColor:"white", 
+
           }}
         />
         <Svg

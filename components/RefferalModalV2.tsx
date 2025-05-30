@@ -88,6 +88,7 @@ const RefferalModalV2 = ({ visible, onClose }: Props) => {
               type: "success",
               text1: data.message || "Operation Successful"
           })
+          onClose()
           return
       },
       showErrorMessage: true,

@@ -47,6 +47,7 @@ const useFetch = <T,>({
 
   useEffect(() => {
     if (isError && error) {
+      console.log({  error: JSON.stringify(error)  })
       if (axios.isAxiosError(error)) {
         const data: any = error?.response?.data;
         const message = data?.message;
@@ -82,7 +83,7 @@ const useFetch = <T,>({
     }
   }, [error, isError, showMessage, signOut]);
 
-  return { data, error, isLoading, isFetching, refetch, fetchStatus };
+  return { data, error, isLoading, isFetching, refetch, fetchStatus, isError };
 };
 
 export default useFetch;
