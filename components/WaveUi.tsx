@@ -1,10 +1,10 @@
 import { Colors } from '@/constants/Colors';
-import { Path1, Path2 } from '@/constants/Paths';
+import { Path2 } from '@/constants/Paths';
 import React from 'react';
 import { View, StyleSheet, Dimensions, Text, Image } from 'react-native';
-import Animated from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import Logo from "@/assets/images/LogoImage.svg"
+import Logo from "@/assets/images/logo3.svg"
+import LogoText from "@/assets/images/logo-text.svg"
 
 const { width } = Dimensions.get('window');
 
@@ -25,17 +25,25 @@ const WaveUI = ({ underlineTxt, restTxt, size = 38 }: Props) => {
             width: width*0.42, height: width*0.4,
             // backgroundColor:"white", 
             }} /> */}
+            <View style={{ gap: 1, justifyContent: 'center', alignItems: 'center', position: "absolute",  zIndex:50, }}>
+              <Image source={require('@/assets/images/logo-icon.png')}
+                style={{ 
+                  // position:"absolute",
+                  zIndex:50,
+                  width: 60, height: 52,
+                  // backgroundColor:"white", 
+                }} 
+              />
+              <LogoText 
+                width={150} 
+                height={80} 
+                style={{
+                  // position:"absolute",
+                  // zIndex:50,
+                }}
+              />
+            </View>
 
-        <Logo 
-          width={width*0.6} height={width*0.4} 
-          style={{
-            // backgroundColor:"blue",
-            position:"absolute",
-            zIndex:50,
-            // backgroundColor:"white", 
-
-          }}
-        />
         <Svg
           height={restTxt === 'up' ? "40%" : "60%" }
           width="100%"

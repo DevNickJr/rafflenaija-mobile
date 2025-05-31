@@ -81,7 +81,7 @@ const useFetch = <T,>({
         }
       }
     }
-  }, [error, isError, showMessage, signOut]);
+  }, [error, isError]);
 
   return { data, error, isLoading, isFetching, refetch, fetchStatus, isError };
 };

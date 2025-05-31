@@ -80,7 +80,7 @@ const HomeScreen = () => {
     }
   },[user, dispatch, access_token, refresh_token])
 
-  const { data: games, isLoading: isLoadingGames, refetch: refetchGames, isError } = useFetch<IResponseData<IGame[]>>({
+  const { data: games, isLoading: isLoadingGames, refetch: refetchGames, isError, isFetching } = useFetch<IResponseData<IGame[]>>({
     api: apiGetGames,
     key: ["games", selectedCategory?.id || ""],
     param: selectedCategory?.id,
@@ -200,6 +200,8 @@ const HomeScreen = () => {
     return false;
   }, [games?.data?.length, categories?.data?.length, isError, isLoadingGames, isLoadingCategories])
 
+  console.log({ isLoadingGames })
+
   return (
     <SafeView style={{ backgroundColor:"#f4f7f9" }}>
     {/* <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS==="android" ? 20 : 0 }}> */}
@@ -208,7 +210,7 @@ const HomeScreen = () => {
         <>
           <Banner />
           {
-              isLoadingGames ?
+              (isLoadingGames || (isFetching && !games?.data?.length)) ?
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
                   <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 20 }} />
                 </View>
@@ -216,7 +218,6 @@ const HomeScreen = () => {
                 (networkError) ? 
                   <View style={{
                     height: height * 0.7,
-                    // backgroundColor: 'red',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexDirection: 'column',
@@ -243,7 +244,7 @@ const HomeScreen = () => {
                   !games?.data?.length ?
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 100 }}>
                       <Text style={{ fontSize:16, fontWeight:"600", textAlign: 'center' }}>
-                        No raffles available
+                        No raffles available for this category
                       </Text>
                     </View>
                     :

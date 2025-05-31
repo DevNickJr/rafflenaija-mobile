@@ -8,6 +8,9 @@ import { Href, router } from 'expo-router';
 import { SafeView } from '@/components/SafeView';
 import AccountUser from '@/components/AccountUser';
 import { StatusBar } from 'expo-status-bar';
+import { apiLogout } from '@/services/AuthService';
+import useMutate from '@/hooks/useMutation';
+import { ILogout } from '@/interfaces';
 
 type MenuItem = {
   title: string;
@@ -30,16 +33,37 @@ const bottomMenuItems: MenuItem[] = [
 ];
 
 const Account = () => {
-  const { signOut } = useSession();
+  const { signOut, refresh_token } = useSession();
 
   const handlePress = async (item: MenuItem) => {
     if (item.title === 'Log Out') {
-      signOut();
-      await SecureStore.deleteItemAsync('NAVIGATION_STATE');
-      router.replace("/(auth)/login");
+      logout();
     } else if (item.href) {
       router.push(item.href);
     }
+  };
+  
+  const logoutMutation = useMutate<ILogout, any>(
+    apiLogout,
+    {
+      onSuccess: async () => {
+          signOut();
+          await SecureStore.deleteItemAsync('NAVIGATION_STATE');
+          router.replace("/(auth)/login");
+      },
+      onError: async () => {
+        signOut();  
+        await SecureStore.deleteItemAsync('NAVIGATION_STATE');
+        router.replace("/(auth)/login");
+      },
+      requireAuth: true
+    }
+  )
+
+  const logout = async (): Promise<void> => {
+      logoutMutation.mutate({
+          refresh_token: refresh_token || '',
+      })
   };
 
   // <SafeAreaView style={[styles.container,{paddingTop:Platform.OS==="android"?40:0}]}>
@@ -80,9 +104,8 @@ const Account = () => {
               >
                 <View style={styles.iconWrapper}>{item.icon}</View>
                 <Text style={[styles.menuText, item.title === 'Log Out' && { color: '#E53935' }]}>
-                  {item.title}
+                  {(item.title === 'Log Out' && logoutMutation?.isPending) ? 'Logging Out ...' : item.title}
                 </Text>
-
                 <View style={{flex:1, alignItems:"flex-end"}}>
                   <MaterialIcons name="arrow-forward-ios" size={24} color={item.title === 'Log Out'?'#E53935':'gray'} />
                 </View>

@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
+import axios from 'axios';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 const channels: ("bank" | "card" | "ussd" | "qr" | "mobile_money" | "bank_transfer" | "eft" | "apple_pay")[] = ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
@@ -24,11 +25,24 @@ SplashScreen.setOptions({
 
 SplashScreen.preventAutoHideAsync();
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (axios.isAxiosError(error)) {
+          // Disable retry on 401 Unauthorized errors
+          const status = error?.response?.status;
+          if (status === 401 && failureCount > 1) return false;
+        }
+        return failureCount < 3; // retry max 3 times otherwise
+      },
+    },
+  },
+});
 
 export default function RootLayout() {
   // const colorScheme = useColorScheme();
-  const { access_token, isLoading } = useSession();
+  const { isLoading } = useSession();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...MaterialIcons.font,
