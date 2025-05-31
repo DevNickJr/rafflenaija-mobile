@@ -10,6 +10,7 @@ import {
   Platform,
   SafeAreaView,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import Pagination from '@cherry-soft/react-native-basic-pagination';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -22,6 +23,7 @@ import useMutate from '@/hooks/useMutation';
 import Toast from 'react-native-toast-message';
 import { Colors } from '@/constants/Colors';
 const today = new Date()
+const { width } = Dimensions.get('screen');
 
 const GameRow = ({ item, handleSwap }: { item: IHistory; handleSwap: (id: string) => void }) => (
   <View style={[styles.row, item.status === 'Won' ? styles.won : styles.lost]}>
@@ -191,8 +193,9 @@ const Game =() => {
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginVertical: 20,
-                  flex: 1,
-                  display: 'flex'
+                  // flex: 1,
+                  // display: 'flex',
+                  width,
                 }} className='text-center'>
                     {
                       isLoading ? 

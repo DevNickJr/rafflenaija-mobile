@@ -295,10 +295,9 @@ export default Transaction;
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal:20,
+      padding: 20,
       backgroundColor:"#fff"
     },
-
     topBar: {
         flexDirection: 'row',
         marginVertical: 10,
