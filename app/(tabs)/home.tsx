@@ -46,6 +46,9 @@ const HomeScreen = () => {
   const { dispatch, access_token, refresh_token, ...context } = useSession()
   const [selectedCategory, setSelectedCategory] = useState<ICategory | undefined>()
   const [showImageModal, setShowImageModal]=useState(false)
+
+  const [mounted, setMounted] = useState(false);
+
   const { data: categories, isLoading: isLoadingCategories } = useFetch<IResponseData<ICategory[]>>({
     api: apiGetCategories,
     key: ["categories"],
@@ -90,6 +93,11 @@ const HomeScreen = () => {
       }
   }, [categories]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 10); // Small delay
+    return () => clearTimeout(timer);
+  }, []);
+
 
   const [ticket, setTicket] = useState<IRaffleTicket | null>(null)
       
@@ -127,9 +135,15 @@ const HomeScreen = () => {
           styles.rafCard,
           isRaffled && styles.raffledCard,
         ]}>
-        <Text style={isRaffled ? styles.raffledText : styles.normalText}>
+        {/* <Text style={isRaffled ? styles.raffledText : styles.normalText}>
           {item.is_winner ? 'WON' : isRaffled ? 'Raffled' :  codes[index] ?? index}
-        </Text>
+        </Text> */}
+        <Text style={[
+            isRaffled ? styles.raffledText : styles.normalText,
+            Platform.OS === 'ios' && !mounted && { opacity: 0 } // prevent visual glitch
+          ]}>
+            {item.is_winner ? 'WON' : isRaffled ? 'Raffled' : codes[index] ?? index}
+          </Text>
       </TouchableOpacity>
     );
   });
@@ -353,23 +367,53 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'center',
   },
-  rafCard: {
-    backgroundColor: '#449444',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  // rafCard: {
+  //   backgroundColor: '#449444',
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  // },
+  // normalText: {
+  //   fontSize: 18,
+  //   color: '#fff',
+  // },
+  // raffledCard: {
+  //   backgroundColor: '#F1C0C0',
+  // },
+  // raffledText: {
+  //   transform: [{ rotate: '-60deg' }],
+  //   fontSize: dynamicFontSize,
+  //   color: '#952524',
+  //   textAlign: 'center',
+  // },
   normalText: {
-    fontSize: 18,
+    fontWeight: 'bold',
+    fontSize: dynamicFontSize,
     color: '#fff',
-  },
-  raffledCard: {
-    backgroundColor: '#F1C0C0',
+    textAlign: 'center',
+    ...(Platform.OS === 'ios' && {
+      opacity: 0.99, // Workaround for iOS transform bug
+    }),
   },
   raffledText: {
-    transform: [{ rotate: '-60deg' }],
+    transform: [{ rotate: '-45deg' }],
+    fontWeight: 'bold',
     fontSize: dynamicFontSize,
     color: '#952524',
     textAlign: 'center',
+    ...(Platform.OS === 'ios' && {
+      opacity: 0.99, // Workaround for iOS transform bug
+    }),
+  },
+  rafCard: {
+    backgroundColor: '#449444',
+    // borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: '#ccc',
+  },
+  raffledCard: {
+    backgroundColor: '#F1C0C0',
+    // borderColor: '#666',
   },
   modalContainer:{
     flex:1,
