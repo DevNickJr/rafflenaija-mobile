@@ -56,7 +56,7 @@ const WaveUI = ({ underlineTxt, restTxt, size = 38 }: Props) => {
       <View style={{ 
          marginTop: restTxt === 'up' ? 30 : 60,
          marginLeft: 30,
-         width: 150,
+        //  width: 150,
        }}>
         <Text style={{ fontSize: size, fontWeight: '600' }}>
           <Text style={{ textDecorationLine: 'underline', paddingBottom: 30 }}>{underlineTxt}</Text>{' '}
@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
   container: {
     // flex: 1,
     // justifyContent: 'flex-end',
+    backgroundColor: '#fff',
   },
   wave: {
     position: 'absolute',

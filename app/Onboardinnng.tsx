@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { OnboardFlow, DotPagination } from 'react-native-onboard'
-import { useRouter } from 'expo-router'
+import { Stack, useRouter } from 'expo-router'
 import { FooterProps } from 'react-native-onboard/lib/OnboardFlow/Footer'
 import Onboard1 from "@/assets/onboarding/cards.svg"
 // import Onboard2 from "@/assets/onboarding/undraw_stand-out_alq4.svg"
@@ -29,6 +29,12 @@ const Onboardinnng = () => {
 
   return (
     <SafeView style={{ flex: 1 }}>
+       <Stack.Screen
+            options={{
+                title: 'Age',
+                headerShown: false
+            }}
+        />
       <OnboardFlow
         titleStyle={{
           fontSize: 24,

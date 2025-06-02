@@ -1,12 +1,14 @@
 import { Colors } from '@/constants/Colors';
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
   variant?: 'outline' | 'solid';
+  buttonStyle?: StyleProp<ViewStyle>;
+  buttonTextStyle?: StyleProp<TextStyle>;
 }
 
 const AuthButton: React.FC<ButtonProps> = ({
@@ -14,6 +16,8 @@ const AuthButton: React.FC<ButtonProps> = ({
   onPress,
   disabled = false,
   variant = 'solid',
+  buttonStyle={},
+  buttonTextStyle,
 }) => {
   const isOutline = variant === 'outline';
 
@@ -23,6 +27,7 @@ const AuthButton: React.FC<ButtonProps> = ({
         styles.button,
         isOutline ? styles.outline : styles.solid,
         disabled && styles.disabled,
+        buttonStyle,
       ]}
       onPress={onPress}
       disabled={disabled}>
@@ -31,6 +36,7 @@ const AuthButton: React.FC<ButtonProps> = ({
           styles.buttonText,
           isOutline ? styles.outlineText : {},
           disabled && styles.disabledText,
+          buttonTextStyle,
         ]}>
         {title}
       </Text>

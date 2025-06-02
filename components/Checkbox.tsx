@@ -6,9 +6,10 @@ interface CheckboxProps {
   label: string;
   isChecked: boolean;
   setChecked?: ((value: boolean) => void) | undefined;
+  children?: React.ReactNode;
 }
 
-const Checkbox: React.FC<CheckboxProps> = ({ label, isChecked = false, setChecked }) => {
+const Checkbox: React.FC<CheckboxProps> = ({ label, isChecked = false, setChecked, children }) => {
   return (
     <View style={styles.rememberMe}>
       <Checkbox1
@@ -17,7 +18,9 @@ const Checkbox: React.FC<CheckboxProps> = ({ label, isChecked = false, setChecke
         onValueChange={setChecked}
         color={isChecked ? Colors.light.primary : undefined}
       />
-      <Text style={styles.rememberText}>{label}</Text>
+      {
+        children ? children :  <Text style={styles.rememberText}>{label}</Text>
+      }
     </View>
   );
 };

@@ -24,7 +24,7 @@ export default function Login() {
   // const [phoneNumber, setPhoneNumber] = useState('');
   // const [password, setPassword] = useState('');
   const [isChecked, setChecked] = useState(false);
-  const [step, setStep] = useState(1);
+  // const [step, setStep] = useState(1);
 
   const [user, dispatch] = useReducer((state: IUserLogin, action: ILoginReducerAction) => {
     if (action.type === 'reset') {
@@ -65,7 +65,9 @@ export default function Login() {
             type: 'success',
             text1: 'Please verify your account',
           });
-          return setStep(2);
+          // setStep(2);
+          return router.replace(`/(auth)/verify-otp?phone=${user?.phone_number}`)
+
         }
         Toast.show({
           type: 'error',

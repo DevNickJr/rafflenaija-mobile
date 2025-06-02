@@ -1,12 +1,11 @@
-import { useSession } from '@/providers/SessionProvider';
 import AuthButton from '@/components/AuthButton';
 import InputField from '@/components/AuthInput';
 import AuthLink from '@/components/AuthLink';
 import Checkbox from '@/components/Checkbox';
 import WaveUI from '@/components/WaveUi';
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React, { useReducer, useState } from 'react';
-import { SafeAreaView, StatusBar, Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { StatusBar, Text, View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { IRegisterReducerAction, IResponseData, IUserRegister } from '@/interfaces';
 import useMutate from '@/hooks/useMutation';
@@ -43,7 +42,8 @@ export default function SignIn() {
             text1: "Account Created Successfully",
           })
 
-          router.replace('/(auth)/login')
+          router.replace(`/(auth)/verify-otp?phone=${user?.phone_number}`)
+          // router.replace('/(auth)/login')
       },
       showErrorMessage: true,
     }
@@ -145,7 +145,9 @@ export default function SignIn() {
           <View style={styles.options}>
             <Checkbox
               label="By creating an account, you agree to our Terms & Conditions and confirm that you are at least 18 years old or over and all information given is true."
-              isChecked={user?.agreeToTerms || false} setChecked={(value) => dispatch({ type: "agreeToTerms", payload: value })} />
+              isChecked={user?.agreeToTerms || false} setChecked={(value) => dispatch({ type: "agreeToTerms", payload: value })}>
+              <Text style={{ width: "95%", fontSize: 12 }}>By creating an account, you agree to our <Link style={{ color: Colors.light.primary }} href={'https://www.rafflenaija.com/terms'}>Terms & Conditions</Link> and confirm that you are at least 18 years old or over and all information given is true.</Text>
+            </Checkbox>
           </View>
 
           
@@ -219,6 +221,8 @@ const styles = StyleSheet.create({
     marginBottom: 1,
     marginTop: 20,
     marginVertical: 20,
+    overflow: 'hidden',
+    width: '100%',
   },
   signupContainer: {
     flexDirection: 'row',

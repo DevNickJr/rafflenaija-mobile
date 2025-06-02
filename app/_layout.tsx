@@ -42,24 +42,7 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   // const colorScheme = useColorScheme();
-  const { isLoading } = useSession();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...MaterialIcons.font,
-    ...MaterialCommunityIcons.font
-  });
 
-  useEffect(() => {
-    if (loaded && !isLoading) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, isLoading]);
-
-  if (!loaded || isLoading) {
-    return null;
-  }
-
-  
   return (
     <PaystackProvider defaultChannels={channels} publicKey={Constants.expoConfig?.extra?.publicPaymentKey || 'pk_live_3a1ef3cb30186d97964bf0e333e7cb7e01714e55'}>
       <QueryClientProvider client={queryClient}>
