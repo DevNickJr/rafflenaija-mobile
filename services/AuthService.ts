@@ -61,6 +61,14 @@ export const apiDeactivateAccount = (data: any, { token }: { token: string }) =>
   return BaseService.post(`${servicePrefix}/deactivate-account/`, data, Auth(token));
 };
 
+export const apiRequestAccountDeletion = (data: { phone_number: string }, { token }: { token: string }) => {
+  return BaseService.post(`${servicePrefix}/delete-account-request/`, data, Auth(token))
+};
+
+export const apiDeleteAccountConfirm =  (data: any, { token }: { token: string }) => {
+  return BaseService.post(`${servicePrefix}/delete-account/`, data, Auth(token))
+}
+
 export const apiGetUser = (token: string) => {
   return BaseService.get(`${servicePrefix}/user/`, Auth(token));
 };

@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   formContainer: {
-    padding: 10,
+    // padding: 10,
     flex: 1,
     gap: 16,
   },

@@ -11,7 +11,7 @@ module.exports = ({ config }) => {
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.devnickjr.rafflenaija",
+      "bundleIdentifier": "com.rafflenaija.rafflenaija",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -21,7 +21,7 @@ module.exports = ({ config }) => {
         "foregroundImage": "./assets/images/adaptive-icon2.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.devnickjr.rafflenaija"
+      "package": "com.rafflenaija.rafflenaija"
     },
     "web": {
       "bundler": "metro",

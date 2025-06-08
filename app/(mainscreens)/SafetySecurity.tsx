@@ -4,8 +4,9 @@ import ChangePasswordSection from '@/components/safetytabs/ChangePasswordSection
 import RestrictAccount from '@/components/safetytabs/RestrictAccountSection';
 import DeactivateAccount from '@/components/safetytabs/DeactivateAccount';
 import { Stack } from 'expo-router';
+import DeleteAccount from '@/components/safetytabs/DeleteAccount';
 
-const tabs = ['Change Password', 'Restrict Account', 'Deactivate Account'];
+const tabs = ['Change Password', 'Restrict Account', 'Deactivate Account', 'Delete Account'];
 
 const SafetySecurityScreen = () => {
   const [activeTab, setActiveTab] = useState('Change Password');
@@ -17,7 +18,7 @@ const SafetySecurityScreen = () => {
       setShowModal(true);
     } else if (tab === 'Deactivate Account') {
       setShowDeactivateModal(true);
-    }
+    } 
     setActiveTab(tab);
   };
 
@@ -25,6 +26,8 @@ const SafetySecurityScreen = () => {
     switch (activeTab) {
       case 'Change Password':
         return <ChangePasswordSection />;
+      case 'Delete Account':
+        return <DeleteAccount />;
       case 'Restrict Account':
         return (
           <RestrictAccount
